@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/realmicro/realmicro/config/source"
 	"go.etcd.io/etcd/client/v3"
-	"real-micro.com/realmicro/config/source"
 )
 
 type watcher struct {

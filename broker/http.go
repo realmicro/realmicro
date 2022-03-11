@@ -18,14 +18,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/realmicro/realmicro/codec/json"
+	maddr "github.com/realmicro/realmicro/common/xutil/addr"
+	mnet "github.com/realmicro/realmicro/common/xutil/net"
+	mls "github.com/realmicro/realmicro/common/xutil/tls"
+	merr "github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/registry/cache"
 	"golang.org/x/net/http2"
-	"real-micro.com/realmicro/codec/json"
-	maddr "real-micro.com/realmicro/common/xutil/addr"
-	mnet "real-micro.com/realmicro/common/xutil/net"
-	mls "real-micro.com/realmicro/common/xutil/tls"
-	merr "real-micro.com/realmicro/errors"
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/registry/cache"
 )
 
 // HTTP Broker is a point to point async broker

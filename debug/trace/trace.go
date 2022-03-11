@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"real-micro.com/realmicro/metadata"
+	"github.com/realmicro/realmicro/metadata"
 )
 
 // Tracer is an interface for distributed tracing

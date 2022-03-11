@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 // Implements the Streamer interface

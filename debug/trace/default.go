@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"real-micro.com/realmicro/common/xutil/ring"
+	"github.com/realmicro/realmicro/common/xutil/ring"
 )
 
 type memTracer struct {

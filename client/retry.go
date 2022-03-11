@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"real-micro.com/realmicro/errors"
+	"github.com/realmicro/realmicro/errors"
 )
 
 // note that returning either false or a non-nil error will result in the call not being retried

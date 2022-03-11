@@ -4,8 +4,8 @@ package loader
 import (
 	"context"
 
-	"real-micro.com/realmicro/config/reader"
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/reader"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 // Loader manages loading sources

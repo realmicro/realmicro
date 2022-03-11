@@ -6,9 +6,9 @@ import (
 	"net"
 	"time"
 
+	"github.com/realmicro/realmicro/config/source"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	"go.etcd.io/etcd/client/v3"
-	"real-micro.com/realmicro/config/source"
 )
 
 // Currently a single etcd reader
@@ -21,7 +21,7 @@ type etcd struct {
 }
 
 var (
-	DefaultPrefix = "/micro/config/"
+	DefaultPrefix = "/real/config/"
 )
 
 func (c *etcd) Read() (*source.ChangeSet, error) {

@@ -3,7 +3,7 @@ package json
 import (
 	"encoding/json"
 
-	"real-micro.com/realmicro/config/encoder"
+	"github.com/realmicro/realmicro/config/encoder"
 )
 
 type jsonEncoder struct{}

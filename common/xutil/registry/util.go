@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 func addNodes(old, neu []*registry.Node) []*registry.Node {

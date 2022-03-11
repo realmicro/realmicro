@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"time"
 
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 type Options struct {

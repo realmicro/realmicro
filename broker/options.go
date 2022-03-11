@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 
-	"real-micro.com/realmicro/codec"
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/codec"
+	"github.com/realmicro/realmicro/registry"
 )
 
 type Options struct {

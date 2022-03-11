@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 func TestValues(t *testing.T) {

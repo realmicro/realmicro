@@ -3,9 +3,9 @@ package etcd
 import (
 	"strings"
 
+	"github.com/realmicro/realmicro/config/encoder"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	"go.etcd.io/etcd/client/v3"
-	"real-micro.com/realmicro/config/encoder"
 )
 
 func makeEvMap(e encoder.Encoder, data map[string]interface{}, kv []*clientv3.Event, stripPrefix string) map[string]interface{} {

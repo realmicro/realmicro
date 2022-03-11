@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	dlog "real-micro.com/realmicro/debug/log"
+	dlog "github.com/realmicro/realmicro/debug/log"
 )
 
 func init() {

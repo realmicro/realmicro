@@ -4,7 +4,7 @@ package reader
 import (
 	"time"
 
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 // Reader is an interface for merging changesets

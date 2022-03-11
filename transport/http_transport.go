@@ -16,10 +16,10 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	maddr "real-micro.com/realmicro/common/xutil/addr"
-	"real-micro.com/realmicro/common/xutil/buf"
-	mnet "real-micro.com/realmicro/common/xutil/net"
-	mls "real-micro.com/realmicro/common/xutil/tls"
+	maddr "github.com/realmicro/realmicro/common/xutil/addr"
+	"github.com/realmicro/realmicro/common/xutil/buf"
+	mnet "github.com/realmicro/realmicro/common/xutil/net"
+	mls "github.com/realmicro/realmicro/common/xutil/tls"
 )
 
 type httpTransport struct {

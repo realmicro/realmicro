@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 func init() {

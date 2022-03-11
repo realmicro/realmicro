@@ -3,7 +3,7 @@ package pool
 import (
 	"time"
 
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/transport"
 )
 
 type Options struct {

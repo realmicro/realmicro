@@ -1,8 +1,8 @@
 package server
 
 import (
-	"real-micro.com/realmicro/broker"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/transport"
 )
 
 // event is a broker event we handle on the server transport

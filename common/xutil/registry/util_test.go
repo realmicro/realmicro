@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 func TestRemove(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 type file struct {

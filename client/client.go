@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 // Client is the interface used to make requests to services.
@@ -152,4 +152,3 @@ func NewStream(ctx context.Context, request Request, opts ...CallOption) (Stream
 func String() string {
 	return DefaultClient.String()
 }
-

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 func extractValue(v reflect.Type, d int) *registry.Value {

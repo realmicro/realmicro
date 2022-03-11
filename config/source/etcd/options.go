@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 type addressKey struct{}

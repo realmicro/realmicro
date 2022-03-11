@@ -1,7 +1,7 @@
 package client
 
 import (
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 type rpcRequest struct {

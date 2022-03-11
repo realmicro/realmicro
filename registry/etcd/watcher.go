@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 	"go.etcd.io/etcd/client/v3"
 )
 

@@ -1,8 +1,8 @@
 package reader
 
 import (
-	"real-micro.com/realmicro/config/encoder"
-	"real-micro.com/realmicro/config/encoder/json"
+	"github.com/realmicro/realmicro/config/encoder"
+	"github.com/realmicro/realmicro/config/encoder/json"
 )
 
 type Options struct {

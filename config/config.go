@@ -1,9 +1,9 @@
 package config
 
 import (
-	"real-micro.com/realmicro/config/reader"
-	"real-micro.com/realmicro/config/source"
-	"real-micro.com/realmicro/config/source/file"
+	"github.com/realmicro/realmicro/config/reader"
+	"github.com/realmicro/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source/file"
 )
 
 // Config is an interface abstraction for dynamic configuration

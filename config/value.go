@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"real-micro.com/realmicro/config/reader"
+	"github.com/realmicro/realmicro/config/reader"
 )
 
 type value struct{}

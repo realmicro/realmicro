@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
-	"real-micro.com/realmicro/config/encoder"
-	"real-micro.com/realmicro/config/encoder/json"
-	"real-micro.com/realmicro/config/reader"
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/encoder"
+	"github.com/realmicro/realmicro/config/encoder/json"
+	"github.com/realmicro/realmicro/config/reader"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 type jsonReader struct {

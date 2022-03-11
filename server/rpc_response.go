@@ -3,8 +3,8 @@ package server
 import (
 	"net/http"
 
-	"real-micro.com/realmicro/codec"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/codec"
+	"github.com/realmicro/realmicro/transport"
 )
 
 type rpcResponse struct {

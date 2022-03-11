@@ -18,9 +18,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"real-micro.com/realmicro/codec"
-	merrors "real-micro.com/realmicro/errors"
-	"real-micro.com/realmicro/logger"
+	"github.com/realmicro/realmicro/codec"
+	merrors "github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/logger"
 )
 
 var (

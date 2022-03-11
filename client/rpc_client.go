@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"real-micro.com/realmicro/broker"
-	"real-micro.com/realmicro/codec"
-	raw "real-micro.com/realmicro/codec/bytes"
-	"real-micro.com/realmicro/common/xutil/buf"
-	"real-micro.com/realmicro/common/xutil/net"
-	"real-micro.com/realmicro/common/xutil/pool"
-	"real-micro.com/realmicro/errors"
-	"real-micro.com/realmicro/metadata"
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/selector"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/codec"
+	raw "github.com/realmicro/realmicro/codec/bytes"
+	"github.com/realmicro/realmicro/common/xutil/buf"
+	"github.com/realmicro/realmicro/common/xutil/net"
+	"github.com/realmicro/realmicro/common/xutil/pool"
+	"github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/metadata"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/selector"
+	"github.com/realmicro/realmicro/transport"
 )
 
 type rpcClient struct {

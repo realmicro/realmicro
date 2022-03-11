@@ -3,7 +3,7 @@ package server
 import (
 	"reflect"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 type rpcHandler struct {

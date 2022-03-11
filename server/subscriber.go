@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 const (

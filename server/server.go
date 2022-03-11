@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"real-micro.com/realmicro/codec"
-	signalutil "real-micro.com/realmicro/common/xutil/signal"
-	"real-micro.com/realmicro/logger"
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/codec"
+	signalutil "github.com/realmicro/realmicro/common/xutil/signal"
+	"github.com/realmicro/realmicro/logger"
+	"github.com/realmicro/realmicro/registry"
 )
 
 // Server is a simple micro server abstraction

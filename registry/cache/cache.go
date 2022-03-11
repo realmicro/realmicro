@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	util "github.com/realmicro/realmicro/common/xutil/registry"
+	"github.com/realmicro/realmicro/logger"
+	"github.com/realmicro/realmicro/registry"
 	"golang.org/x/sync/singleflight"
-	util "real-micro.com/realmicro/common/xutil/registry"
-	"real-micro.com/realmicro/logger"
-	"real-micro.com/realmicro/registry"
 )
 
 // Cache is the registry cache interface

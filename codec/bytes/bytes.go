@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 type Codec struct {

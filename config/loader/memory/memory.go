@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"real-micro.com/realmicro/config/loader"
-	"real-micro.com/realmicro/config/reader"
-	"real-micro.com/realmicro/config/reader/json"
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/loader"
+	"github.com/realmicro/realmicro/config/reader"
+	"github.com/realmicro/realmicro/config/reader/json"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 type memory struct {

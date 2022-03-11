@@ -3,7 +3,7 @@ package selector
 import (
 	"context"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 type Options struct {

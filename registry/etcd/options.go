@@ -3,7 +3,7 @@ package etcd
 import (
 	"context"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 	"go.uber.org/zap"
 )
 

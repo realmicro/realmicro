@@ -12,17 +12,17 @@ import (
 	"sync"
 	"time"
 
-	"real-micro.com/realmicro/broker"
-	"real-micro.com/realmicro/codec"
-	raw "real-micro.com/realmicro/codec/bytes"
-	"real-micro.com/realmicro/common/xutil/addr"
-	"real-micro.com/realmicro/common/xutil/backoff"
-	mnet "real-micro.com/realmicro/common/xutil/net"
-	"real-micro.com/realmicro/common/xutil/socket"
-	"real-micro.com/realmicro/logger"
-	"real-micro.com/realmicro/metadata"
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/codec"
+	raw "github.com/realmicro/realmicro/codec/bytes"
+	"github.com/realmicro/realmicro/common/xutil/addr"
+	"github.com/realmicro/realmicro/common/xutil/backoff"
+	mnet "github.com/realmicro/realmicro/common/xutil/net"
+	"github.com/realmicro/realmicro/common/xutil/socket"
+	"github.com/realmicro/realmicro/logger"
+	"github.com/realmicro/realmicro/metadata"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/transport"
 )
 
 type rpcServer struct {

@@ -3,8 +3,8 @@ package selector
 import (
 	"time"
 
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/registry/cache"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/registry/cache"
 )
 
 type registrySelector struct {

@@ -4,7 +4,7 @@ package socket
 import (
 	"io"
 
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/transport"
 )
 
 // Socket is our pseudo socket for transport.Socket

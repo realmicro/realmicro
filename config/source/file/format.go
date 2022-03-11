@@ -3,7 +3,7 @@ package file
 import (
 	"strings"
 
-	"real-micro.com/realmicro/config/encoder"
+	"github.com/realmicro/realmicro/config/encoder"
 )
 
 func format(p string, e encoder.Encoder) string {

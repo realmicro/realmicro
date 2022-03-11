@@ -1,7 +1,7 @@
 package bytes
 
 import (
-	"real-micro.com/realmicro/codec"
+	"github.com/realmicro/realmicro/codec"
 )
 
 type Marshaler struct{}

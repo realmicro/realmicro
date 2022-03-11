@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 // CallFunc represents the individual call func

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/fsnotify/fsnotify"
-	"real-micro.com/realmicro/config/source"
+	"github.com/realmicro/realmicro/config/source"
 )
 
 type watcher struct {

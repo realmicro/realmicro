@@ -4,7 +4,7 @@ package selector
 import (
 	"errors"
 
-	"real-micro.com/realmicro/registry"
+	"github.com/realmicro/realmicro/registry"
 )
 
 // Selector builds on the registry as a mechanism to pick nodes

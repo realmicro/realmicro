@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"real-micro.com/realmicro/broker"
-	"real-micro.com/realmicro/codec"
-	"real-micro.com/realmicro/debug/trace"
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/codec"
+	"github.com/realmicro/realmicro/debug/trace"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/transport"
 )
 
 type Options struct {

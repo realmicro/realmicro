@@ -15,11 +15,11 @@ import (
 	"time"
 
 	hash "github.com/mitchellh/hashstructure"
+	"github.com/realmicro/realmicro/logger"
+	"github.com/realmicro/realmicro/registry"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	"go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
-	"real-micro.com/realmicro/logger"
-	"real-micro.com/realmicro/registry"
 )
 
 var (

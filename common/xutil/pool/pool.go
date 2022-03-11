@@ -4,7 +4,7 @@ package pool
 import (
 	"time"
 
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/transport"
 )
 
 // Pool is an interface for connection pooling

@@ -4,7 +4,7 @@ package registry
 import (
 	"errors"
 
-	"real-micro.com/realmicro/registry/etcd"
+	"github.com/realmicro/realmicro/registry/etcd"
 )
 
 var (

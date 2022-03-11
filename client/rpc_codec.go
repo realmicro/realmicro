@@ -4,14 +4,14 @@ import (
 	"bytes"
 	errs "errors"
 
-	"real-micro.com/realmicro/codec"
-	raw "real-micro.com/realmicro/codec/bytes"
-	"real-micro.com/realmicro/codec/grpc"
-	"real-micro.com/realmicro/codec/json"
-	"real-micro.com/realmicro/codec/proto"
-	"real-micro.com/realmicro/errors"
-	"real-micro.com/realmicro/registry"
-	"real-micro.com/realmicro/transport"
+	"github.com/realmicro/realmicro/codec"
+	raw "github.com/realmicro/realmicro/codec/bytes"
+	"github.com/realmicro/realmicro/codec/grpc"
+	"github.com/realmicro/realmicro/codec/json"
+	"github.com/realmicro/realmicro/codec/proto"
+	"github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/registry"
+	"github.com/realmicro/realmicro/transport"
 )
 
 const (
