@@ -3,12 +3,10 @@ package registry
 
 import (
 	"errors"
-
-	"github.com/realmicro/realmicro/registry/etcd"
 )
 
 var (
-	DefaultRegistry = etcd.NewRegistry()
+	DefaultRegistry = NewRegistry()
 
 	// Not found error when GetService is called
 	ErrNotFound = errors.New("service not found")

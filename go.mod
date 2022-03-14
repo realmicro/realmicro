@@ -12,6 +12,7 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/imdario/mergo v0.3.12
+	github.com/miekg/dns v1.1.47
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/nxadm/tail v1.4.8
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c

@@ -20,7 +20,7 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 func main() {
 	service := realmicro.NewService(
 		realmicro.Name("helloworld"),
-		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{""}...))),
+		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{"127.0.0.1:2379"}...))),
 	)
 
 	service.Init()
