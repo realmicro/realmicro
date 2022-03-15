@@ -6,7 +6,7 @@ import (
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/client"
-	"github.com/realmicro/realmicro/examples/client/proto"
+	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
@@ -14,7 +14,7 @@ import (
 
 func call(i int, c client.Client) {
 	// Create new request to service go.micro.srv.example, method Example.Call
-	req := c.NewRequest("DevRss", "DevRssService.GetCategoryList", &dev_rss.GetCategoryListRequest{})
+	req := c.NewRequest("helloworld", "Greeter.Hello", &greeter.Request{})
 
 	// create context with metadata
 	ctx := metadata.NewContext(context.Background(), map[string]string{
@@ -22,7 +22,7 @@ func call(i int, c client.Client) {
 		"X-From-Id": "script",
 	})
 
-	rsp := &dev_rss.GetCategoryListResponse{}
+	rsp := &greeter.Response{}
 
 	// Call service
 	if err := c.Call(ctx, req, rsp); err != nil {
@@ -30,7 +30,7 @@ func call(i int, c client.Client) {
 		return
 	}
 
-	fmt.Println("Call:", i, "rsp:", rsp.List)
+	fmt.Println("Call:", i, "rsp:", rsp)
 }
 
 func main() {
