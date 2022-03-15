@@ -86,7 +86,7 @@ func (t *Token) Expired() bool {
 
 // Resource is an entity such as a user or
 type Resource struct {
-	// Name of the resource, e.g. go.micro.service.notes
+	// Name of the resource, e.g. real.micro.service.notes
 	Name string `json:"name"`
 	// Type of resource, e.g. service
 	Type string `json:"type"`

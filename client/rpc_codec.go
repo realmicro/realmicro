@@ -8,6 +8,7 @@ import (
 	raw "github.com/realmicro/realmicro/codec/bytes"
 	"github.com/realmicro/realmicro/codec/grpc"
 	"github.com/realmicro/realmicro/codec/json"
+	"github.com/realmicro/realmicro/codec/jsonrpc"
 	"github.com/realmicro/realmicro/codec/proto"
 	"github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/registry"
@@ -56,6 +57,7 @@ var (
 		"application/grpc+proto":   grpc.NewCodec,
 		"application/protobuf":     proto.NewCodec,
 		"application/json":         json.NewCodec,
+		"application/json-rpc":     jsonrpc.NewCodec,
 		"application/octet-stream": raw.NewCodec,
 	}
 )
@@ -179,7 +181,7 @@ func (c *rpcCodec) Write(m *codec.Message, body interface{}) error {
 		} else {
 			// write to codec
 			if err := c.codec.Write(m, body); err != nil {
-				return errors.InternalServerError("go.micro.client.codec", err.Error())
+				return errors.InternalServerError("real.micro.client.codec", err.Error())
 			}
 			// set body
 			m.Body = c.buf.wbuf.Bytes()
@@ -194,7 +196,7 @@ func (c *rpcCodec) Write(m *codec.Message, body interface{}) error {
 
 	// send the request
 	if err := c.client.Send(&msg); err != nil {
-		return errors.InternalServerError("go.micro.client.transport", err.Error())
+		return errors.InternalServerError("real.micro.client.transport", err.Error())
 	}
 
 	return nil
@@ -205,7 +207,7 @@ func (c *rpcCodec) ReadHeader(m *codec.Message, r codec.MessageType) error {
 
 	// read message from transport
 	if err := c.client.Recv(&tm); err != nil {
-		return errors.InternalServerError("go.micro.client.transport", err.Error())
+		return errors.InternalServerError("real.micro.client.transport", err.Error())
 	}
 
 	c.buf.rbuf.Reset()
@@ -222,7 +224,7 @@ func (c *rpcCodec) ReadHeader(m *codec.Message, r codec.MessageType) error {
 
 	// return header error
 	if err != nil {
-		return errors.InternalServerError("go.micro.client.codec", err.Error())
+		return errors.InternalServerError("real.micro.client.codec", err.Error())
 	}
 
 	return nil
@@ -237,7 +239,7 @@ func (c *rpcCodec) ReadBody(b interface{}) error {
 	}
 
 	if err := c.codec.ReadBody(b); err != nil {
-		return errors.InternalServerError("go.micro.client.codec", err.Error())
+		return errors.InternalServerError("real.micro.client.codec", err.Error())
 	}
 	return nil
 }
@@ -246,7 +248,7 @@ func (c *rpcCodec) Close() error {
 	c.buf.Close()
 	c.codec.Close()
 	if err := c.client.Close(); err != nil {
-		return errors.InternalServerError("go.micro.client.transport", err.Error())
+		return errors.InternalServerError("real.micro.client.transport", err.Error())
 	}
 	return nil
 }

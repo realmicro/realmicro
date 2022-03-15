@@ -87,7 +87,7 @@ func Proxy(service string, address []string) (string, []string, bool) {
 	if prx := os.Getenv("MICRO_PROXY"); len(prx) > 0 {
 		// default name
 		if prx == "service" {
-			prx = "go.micro.proxy"
+			prx = "real.micro.proxy"
 			address = nil
 		}
 
@@ -105,7 +105,7 @@ func Proxy(service string, address []string) (string, []string, bool) {
 	if prx := os.Getenv("MICRO_NETWORK"); len(prx) > 0 {
 		// default name
 		if prx == "service" {
-			prx = "go.micro.network"
+			prx = "real.micro.network"
 		}
 		service = prx
 		hasProxy = true

@@ -31,8 +31,8 @@ type runtime struct {
 	start chan *service
 	// indicates if we're running
 	running bool
-	// namespaces stores services grouped by namespace, e.g. namespaces["foo"]["go.micro.auth:latest"]
-	// would return the latest version of go.micro.auth from the foo namespace
+	// namespaces stores services grouped by namespace, e.g. namespaces["foo"]["real.micro.auth:latest"]
+	// would return the latest version of real.micro.auth from the foo namespace
 	namespaces map[string]map[string]*service
 }
 

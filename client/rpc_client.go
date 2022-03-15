@@ -97,7 +97,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		var err error
 		cf, err = r.newCodec(req.ContentType())
 		if err != nil {
-			return errors.InternalServerError("go.micro.client", err.Error())
+			return errors.InternalServerError("real.micro.client", err.Error())
 		}
 	}
 
@@ -111,7 +111,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 
 	c, err := r.pool.Get(address, dOpts...)
 	if err != nil {
-		return errors.InternalServerError("go.micro.client", "connection error: %v", err)
+		return errors.InternalServerError("real.micro.client", "connection error: %v", err)
 	}
 
 	seq := atomic.AddUint64(&r.seq, 1) - 1
@@ -141,7 +141,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- errors.InternalServerError("go.micro.client", "panic recovered: %v", r)
+				ch <- errors.InternalServerError("real.micro.client", "panic recovered: %v", r)
 			}
 		}()
 
@@ -167,7 +167,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	case err := <-ch:
 		return err
 	case <-ctx.Done():
-		grr = errors.Timeout("go.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		grr = errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	// set the stream error
@@ -213,7 +213,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 		var err error
 		cf, err = r.newCodec(req.ContentType())
 		if err != nil {
-			return nil, errors.InternalServerError("go.micro.client", err.Error())
+			return nil, errors.InternalServerError("real.micro.client", err.Error())
 		}
 	}
 
@@ -227,7 +227,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 
 	c, err := r.opts.Transport.Dial(address, dOpts...)
 	if err != nil {
-		return nil, errors.InternalServerError("go.micro.client", "connection error: %v", err)
+		return nil, errors.InternalServerError("real.micro.client", "connection error: %v", err)
 	}
 
 	// increment the sequence number
@@ -275,7 +275,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 	case err := <-ch:
 		grr = err
 	case <-ctx.Done():
-		grr = errors.Timeout("go.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		grr = errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	if grr != nil {
@@ -349,9 +349,9 @@ func (r *rpcClient) next(request Request, opts CallOptions) (selector.Next, erro
 	next, err := r.opts.Selector.Select(service, opts.SelectOptions...)
 	if err != nil {
 		if err == selector.ErrNotFound {
-			return nil, errors.InternalServerError("go.micro.client", "service %s: %s", service, err.Error())
+			return nil, errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
 		}
-		return nil, errors.InternalServerError("go.micro.client", "error selecting %s node: %s", service, err.Error())
+		return nil, errors.InternalServerError("real.micro.client", "error selecting %s node: %s", service, err.Error())
 	}
 
 	return next, nil
@@ -386,7 +386,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return errors.Timeout("go.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		return errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -398,12 +398,12 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		rcall = callOpts.CallWrappers[i-1](rcall)
 	}
 
-	// return errors.New("go.micro.client", "request timeout", 408)
+	// return errors.New("real.micro.client", "request timeout", 408)
 	call := func(i int) error {
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return errors.InternalServerError("go.micro.client", "backoff error: %v", err.Error())
+			return errors.InternalServerError("real.micro.client", "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -416,9 +416,9 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		service := request.Service()
 		if err != nil {
 			if err == selector.ErrNotFound {
-				return errors.InternalServerError("go.micro.client", "service %s: %s", service, err.Error())
+				return errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
 			}
-			return errors.InternalServerError("go.micro.client", "error getting next %s node: %s", service, err.Error())
+			return errors.InternalServerError("real.micro.client", "error getting next %s node: %s", service, err.Error())
 		}
 
 		// make the call
@@ -445,7 +445,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 
 		select {
 		case <-ctx.Done():
-			return errors.Timeout("go.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return errors.Timeout("real.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case err := <-ch:
 			// if the call succeeded lets bail early
 			if err == nil {
@@ -483,7 +483,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return nil, errors.Timeout("go.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		return nil, errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -491,7 +491,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return nil, errors.InternalServerError("go.micro.client", "backoff error: %v", err.Error())
+			return nil, errors.InternalServerError("real.micro.client", "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -503,9 +503,9 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		service := request.Service()
 		if err != nil {
 			if err == selector.ErrNotFound {
-				return nil, errors.InternalServerError("go.micro.client", "service %s: %s", service, err.Error())
+				return nil, errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
 			}
-			return nil, errors.InternalServerError("go.micro.client", "error getting next %s node: %s", service, err.Error())
+			return nil, errors.InternalServerError("real.micro.client", "error getting next %s node: %s", service, err.Error())
 		}
 
 		stream, err := r.stream(ctx, node, request, callOpts)
@@ -537,7 +537,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 
 		select {
 		case <-ctx.Done():
-			return nil, errors.Timeout("go.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return nil, errors.Timeout("real.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case rsp := <-ch:
 			// if the call succeeded lets bail early
 			if rsp.err == nil {
@@ -589,7 +589,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 	// encode message body
 	cf, err := r.newCodec(msg.ContentType())
 	if err != nil {
-		return errors.InternalServerError("go.micro.client", err.Error())
+		return errors.InternalServerError("real.micro.client", err.Error())
 	}
 
 	var body []byte
@@ -609,7 +609,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 				"Micro-Topic": msg.Topic(),
 			},
 		}, msg.Payload()); err != nil {
-			return errors.InternalServerError("go.micro.client", err.Error())
+			return errors.InternalServerError("real.micro.client", err.Error())
 		}
 
 		// set the body
@@ -618,7 +618,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 
 	if !r.once.Load().(bool) {
 		if err = r.opts.Broker.Connect(); err != nil {
-			return errors.InternalServerError("go.micro.client", err.Error())
+			return errors.InternalServerError("real.micro.client", err.Error())
 		}
 		r.once.Store(true)
 	}
