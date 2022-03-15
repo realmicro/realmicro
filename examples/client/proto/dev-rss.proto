@@ -1,0 +1,425 @@
+syntax = "proto3";
+
+package dev_rss;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+option (gogoproto.populate_all) = true;
+option (gogoproto.goproto_getters_all) = false;
+option (gogoproto.unmarshaler_all) = true;
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+
+service DevRssService {
+    // 数据上传
+    rpc UploadMsg(UploadMsgRequest) returns (UploadMsgResponse) {}
+
+    // 获取分类列表
+    rpc GetCategoryList(GetCategoryListRequest) returns (GetCategoryListResponse) {}
+    // 根据分类获取分类下文章列表
+    rpc GetCategoryArticleList(GetCategoryArticleListRequest) returns (GetCategoryArticleListResponse) {}
+    // 获取用户关注文章列表
+    rpc GetUserFollowArticleList(GetUserFollowArticleListRequest) returns (GetUserFollowArticleListResponse) {}
+    // 获取文章详情
+    rpc GetArticleDetail(GetArticleDetailRequest) returns (GetArticleDetailResponse) {}
+    // 获取文章分享信息
+    rpc GetArticleShare(GetArticleShareRequest) returns (GetArticleShareResponse) {}
+    // 获取用户收藏文章状态
+    rpc ArticleCollectStatus(ArticleCollectStatusRequest) returns (ArticleCollectStatusResponse) {}
+    // 用户收藏文章/取消收藏文章
+    rpc ArticleCollectUncollect(ArticleCollectUncollectRequest) returns (ArticleCollectUncollectResponse) {}
+    // 搜索作者
+    rpc SearchAuthor(SearchAuthorRequest) returns (SearchAuthorResponse) {}
+    // 获取热搜
+    rpc GetHotSearch(GetHotSearchRequest) returns (GetHotSearchResponse) {}
+    // 获取作者详情
+    rpc GetAuthorDetail(GetAuthorDetailRequest) returns (GetAuthorDetailResponse) {}
+    // 获取作者文章列表
+    rpc GetAuthorArticleList(GetAuthorArticleListRequest) returns (GetAuthorArticleListResponse) {}
+    // 用户关注/取消关注
+    rpc UserFollowUnfollow(UserFollowUnfollowRequest) returns (UserFollowUnfollowResponse) {}
+    // 判断用户关注状态
+    rpc UserFollowStatus(UserFollowStatusRequest) returns (UserFollowStatusResponse) {}
+    // 获取用户关注列表
+    rpc GetUserFollowList(GetUserFollowListRequest) returns (GetUserFollowListResponse) {}
+    // 获取用户足迹
+    rpc GetUserFootprint(GetUserFootprintRequest) returns (GetUserFootprintResponse) {}
+    // 获取用户收藏列表
+    rpc GetUserCollectList(GetUserCollectListRequest) returns (GetUserCollectListResponse) {}
+    // 收录作者
+    rpc InclusionAuthor(InclusionAuthorRequest) returns (InclusionAuthorResponse) {}
+
+    // 创建分类
+    rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse) {}
+    // 创建作者
+    rpc CreateAuthor(CreateAuthorRequest) returns (CreateAuthorResponse) {}
+    // 更新作者
+    rpc UpdateAuthor(UpdateAuthorRequest) returns (UpdateAuthorResponse) {}
+    // 获取作者列表
+    rpc GetAuthorList(GetAuthorListRequest) returns (GetAuthorListResponse) {}
+    // 获取文章列表
+    rpc GetArticleList(GetArticleListRequest) returns (GetArticleListResponse) {}
+    // 更新文章
+    rpc UpdateArticle(UpdateArticleRequest) returns (UpdateArticleResponse) {}
+    // 获取收录作者列表
+    rpc GetInclusionAuthorList(GetInclusionAuthorListRequest) returns (GetInclusionAuthorListResponse) {}
+    // 更新作者收录状态
+    rpc ConfirmInclusionAuthor(ConfirmInclusionAuthorRequest) returns (ConfirmInclusionAuthorResponse) {}
+}
+
+enum StatusCode {
+    status_success = 0;
+    status_internal_error = 1;
+    status_param_error = 2;
+}
+
+message Status {
+    StatusCode code = 1 [(gogoproto.jsontag) = "code"];
+    string msg = 2;
+}
+
+// =================== basic message ===================
+
+message Category {
+    int64 id = 1 [(gogoproto.jsontag) = "id"];
+    string name = 2;
+}
+
+message Author {
+    int64 id = 1 [(gogoproto.jsontag) = "id"];
+    string name = 2;
+    string avatar = 3;
+    bool is_followed = 8 [(gogoproto.jsontag) = "is_followed"];
+}
+
+message AuthorCategory {
+    Author author = 1;
+    Category category = 2;
+}
+
+message InclusionAuthor {
+    int64 id = 1 [(gogoproto.jsontag) = "id"];
+    string name = 2;
+    int64 status = 3 [(gogoproto.jsontag) = "status"];
+}
+
+message Article {
+    int64 id = 1 [(gogoproto.jsontag) = "id"];
+    string title = 2;
+    string summary = 3;
+    string cover_small = 4;
+    string cover_big = 5;
+    string detail = 6;
+    int64 timestamp = 7;
+    int64 visit_time = 8;
+    bool is_ad = 9 [(gogoproto.jsontag) = "is_ad"];
+    bool is_chosen = 10 [(gogoproto.jsontag) = "is_chosen"];
+    string qrcode_url = 11;
+    string src_link = 12;
+}
+
+message AuthorArticle {
+    Author author = 1;
+    Article article = 2;
+    Category category = 3;
+}
+
+message AuthorPubArticle {
+    Author author = 1;
+    repeated Article list = 2;
+}
+
+// =================== req/rsp ===================
+
+enum UploadType {
+    receive_msg_type = 0;
+    receive_author = 1;
+}
+message UploadMsgRequest {
+    UploadType upload_type = 1;
+    int64 msg_type = 2;
+    string content = 3;
+    string from_user_name = 4;
+    string from_nick_name = 5;
+    string from_head_img_url = 6;
+}
+
+message UploadMsgResponse {
+    Status status = 1;
+}
+
+message GetCategoryListRequest {}
+
+message GetCategoryListResponse {
+    Status status = 1;
+    repeated Category list = 2;
+}
+
+message GetCategoryArticleListRequest {
+    int64 user_id = 1;
+    bool is_chosen = 2;
+    int64 category_id = 3;
+    int64 offset = 4;
+    int64 num = 5;
+}
+
+message GetCategoryArticleListResponse {
+    Status status = 1;
+    repeated AuthorArticle list = 2;
+}
+
+message GetUserFollowArticleListRequest {
+    int64 user_id = 1;
+    int64 offset = 2;
+    int64 num = 3;
+}
+
+message GetUserFollowArticleListResponse {
+    Status status = 1;
+    repeated AuthorPubArticle list = 2;
+}
+
+message GetArticleDetailRequest {
+    int64 user_id = 1;
+    int64 article_id = 2;
+}
+
+message GetArticleDetailResponse {
+    Status status = 1;
+    AuthorArticle article = 2;
+}
+
+message GetArticleShareRequest {
+    int64 user_id = 1;
+    int64 article_id = 2;
+}
+
+message GetArticleShareResponse {
+    Status status = 1;
+    AuthorArticle article = 2;
+}
+
+message ArticleCollectStatusRequest {
+    int64 user_id = 1;
+    int64 article_id = 2;
+}
+
+message ArticleCollectStatusResponse {
+    Status status = 1;
+    bool collect_status = 2 [(gogoproto.jsontag) = "collect_status"];
+}
+
+enum ArticleCollect {
+    article_collect = 0;
+    article_uncollect = 1;
+}
+message ArticleCollectUncollectRequest {
+    int64 user_id = 1;
+    int64 article_id = 2;
+    ArticleCollect collect = 3;
+}
+
+message ArticleCollectUncollectResponse {
+    Status status = 1;
+}
+
+message SearchAuthorRequest {
+    int64 user_id = 1;
+    string keyword = 2;
+}
+
+message SearchAuthorResponse {
+    Status status = 1;
+    repeated Author list = 2;
+}
+
+message GetHotSearchRequest {
+    int64 user_id = 1;
+}
+
+message GetHotSearchResponse {
+    Status status = 1;
+    repeated Author list = 2;
+}
+
+message GetAuthorDetailRequest {
+    int64 user_id = 1;
+    int64 author_id = 2;
+}
+
+message GetAuthorDetailResponse {
+    Status status = 1;
+    Author author = 2;
+    bool if_followed = 3 [(gogoproto.jsontag) = "if_followed"];
+}
+
+message GetAuthorArticleListRequest {
+    int64 user_id = 1;
+    int64 author_id = 2;
+    int64 offset = 3;
+    int64 num = 4;
+}
+
+message GetAuthorArticleListResponse {
+    Status status = 1;
+    repeated Article list = 2;
+}
+
+enum UserFollow {
+    user_follow = 0;
+    user_unfollow = 1;
+}
+message UserFollowUnfollowRequest {
+    int64 user_id = 1;
+    int64 author_id = 2;
+    UserFollow follow = 3;
+}
+
+message UserFollowUnfollowResponse {
+    Status status = 1;
+}
+
+message UserFollowStatusRequest {
+    int64 user_id = 1;
+    int64 author_id = 2;
+}
+
+message UserFollowStatusResponse {
+    Status status = 1;
+    bool follow_status = 2 [(gogoproto.jsontag) = "follow_status"];
+}
+
+message GetUserFollowListRequest {
+    int64 user_id = 1;
+    int64 offset = 2;
+    int64 num = 3;
+}
+
+message GetUserFollowListResponse {
+    Status status = 1;
+    repeated Author list = 2;
+}
+
+message GetUserFootprintRequest {
+    int64 user_id = 1;
+    int64 offset = 2;
+    int64 num = 3;
+}
+
+message GetUserFootprintResponse {
+    Status status = 1;
+    repeated Article list = 2;
+}
+
+message GetUserCollectListRequest {
+    int64 user_id = 1;
+    int64 offset = 2;
+    int64 num = 3;
+}
+
+message GetUserCollectListResponse {
+    Status status = 1;
+    repeated Article list = 2;
+}
+
+message InclusionAuthorRequest {
+    int64 user_id = 1;
+    int64 category_id = 2;
+    string name = 3;
+}
+
+enum InclusionStatus {
+    inclusion_alreay_in = 0; // 已经收录
+    inclusion_success = 1; // 收录成功
+}
+message InclusionAuthorResponse {
+    Status status = 1;
+    InclusionStatus inclusion_status = 2 [(gogoproto.jsontag) = "inclusion_status"];
+}
+
+// =================== backend req/rsp ===================
+message CreateCategoryRequest {
+    string name = 1;
+}
+
+message CreateCategoryResponse {
+    Status status = 1;
+}
+
+message CreateAuthorRequest {
+    int64 category_id = 1;
+    string name = 2;
+}
+
+message CreateAuthorResponse {
+    Status status = 1;
+}
+
+enum UpdateAuthorType {
+    update_author_category_id = 0;
+}
+message UpdateAuthorRequest {
+    int64 author_id = 1;
+    UpdateAuthorType update_type = 2;
+    int64 category_id = 3;
+}
+
+message UpdateAuthorResponse {
+    Status status = 1;
+}
+
+message GetAuthorListRequest {
+    int64 offset = 1;
+    int64 num = 2;
+}
+
+message GetAuthorListResponse {
+    Status status = 1;
+    repeated AuthorCategory list = 2;
+}
+
+message GetArticleListRequest {
+    int64 offset = 1;
+    int64 num = 2;
+}
+
+message GetArticleListResponse {
+    Status status = 1;
+    repeated AuthorArticle list = 2;
+}
+
+enum UpdateArticleType {
+    update_is_ad = 0;
+    update_category_id = 1;
+    update_is_chosen = 2;
+}
+message UpdateArticleRequest {
+    int64 article_id = 1;
+    UpdateArticleType update_type = 2;
+    int64 is_ad = 3;
+    int64 category_id = 4;
+    int64 is_chosen = 5;
+}
+
+message UpdateArticleResponse {
+    Status status = 1;
+}
+
+message GetInclusionAuthorListRequest {
+    int64 offset = 1;
+    int64 num = 2;
+}
+
+message GetInclusionAuthorListResponse {
+    Status status = 1;
+    repeated InclusionAuthor list = 2;
+}
+
+message ConfirmInclusionAuthorRequest {
+    int64 inclusion_author_id = 1;
+    int64 category_id = 2;
+}
+
+message ConfirmInclusionAuthorResponse {
+    Status status = 1;
+}

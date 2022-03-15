@@ -8,10 +8,12 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-git/go-git/v5 v5.4.2
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/imdario/mergo v0.3.12
+	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/miekg/dns v1.1.47
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/nxadm/tail v1.4.8
