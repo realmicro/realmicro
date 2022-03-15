@@ -39,6 +39,7 @@ type Service struct {
 type Node struct {
 	Id       string            `json:"id"`
 	Address  string            `json:"address"`
+	Port     int               `json:"port"`
 	Metadata map[string]string `json:"metadata"`
 }
 
