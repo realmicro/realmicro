@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/realmicro/realmicro/codec"
-	"github.com/realmicro/realmicro/common/xutil/buf"
+	"github.com/realmicro/realmicro/common/util/buf"
 	"github.com/realmicro/realmicro/transport"
 )
 

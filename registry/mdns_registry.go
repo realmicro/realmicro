@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/realmicro/realmicro/common/xutil/mdns"
+	"github.com/realmicro/realmicro/common/util/mdns"
 	"github.com/realmicro/realmicro/logger"
 )
 

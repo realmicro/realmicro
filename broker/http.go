@@ -19,9 +19,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/realmicro/realmicro/codec/json"
-	maddr "github.com/realmicro/realmicro/common/xutil/addr"
-	mnet "github.com/realmicro/realmicro/common/xutil/net"
-	mls "github.com/realmicro/realmicro/common/xutil/tls"
+	maddr "github.com/realmicro/realmicro/common/util/addr"
+	mnet "github.com/realmicro/realmicro/common/util/net"
+	mls "github.com/realmicro/realmicro/common/util/tls"
 	merr "github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/cache"

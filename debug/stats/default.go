@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/realmicro/realmicro/common/xutil/ring"
+	"github.com/realmicro/realmicro/common/util/ring"
 )
 
 type stats struct {

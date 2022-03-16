@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	util "github.com/realmicro/realmicro/common/xutil/registry"
+	util "github.com/realmicro/realmicro/common/util/registry"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/registry"
 	"golang.org/x/sync/singleflight"

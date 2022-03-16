@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/realmicro/realmicro/codec"
-	signalutil "github.com/realmicro/realmicro/common/xutil/signal"
+	signalutil "github.com/realmicro/realmicro/common/util/signal"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/registry"
 )

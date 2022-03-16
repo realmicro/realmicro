@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/realmicro/realmicro/common/xutil/backoff"
+	"github.com/realmicro/realmicro/common/util/backoff"
 )
 
 type BackoffFunc func(ctx context.Context, req Request, attempts int) (time.Duration, error)

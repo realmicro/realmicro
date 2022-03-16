@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/realmicro/realmicro/common/xutil/ring"
+	"github.com/realmicro/realmicro/common/util/ring"
 )
 
 // Should stream from OS

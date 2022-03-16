@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/realmicro/realmicro/client"
-	signalutil "github.com/realmicro/realmicro/common/xutil/signal"
-	"github.com/realmicro/realmicro/common/xutil/wrapper"
+	signalutil "github.com/realmicro/realmicro/common/util/signal"
+	"github.com/realmicro/realmicro/common/util/wrapper"
 	"github.com/realmicro/realmicro/debug/handler"
 	"github.com/realmicro/realmicro/debug/stats"
 	"github.com/realmicro/realmicro/debug/trace"
