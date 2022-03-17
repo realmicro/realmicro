@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/realmicro/realmicro/common/util/lang"
-	errorx "github.com/realmicro/realmicro/errors"
+	merrors "github.com/realmicro/realmicro/errors"
 )
 
 const (
@@ -165,7 +165,7 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 	writer := newGuardedWriter(options.ctx, output, done)
 	var closeOnce sync.Once
 	// use atomic.Value to avoid data race
-	var retErr errorx.AtomicError
+	var retErr merrors.AtomicError
 	finish := func() {
 		closeOnce.Do(func() {
 			close(done)

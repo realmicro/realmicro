@@ -19,7 +19,7 @@ import (
 	maddr "github.com/realmicro/realmicro/common/util/addr"
 	"github.com/realmicro/realmicro/common/util/buf"
 	mnet "github.com/realmicro/realmicro/common/util/net"
-	mls "github.com/realmicro/realmicro/common/util/tls"
+	mtls "github.com/realmicro/realmicro/common/util/tls"
 )
 
 type httpTransport struct {
@@ -558,7 +558,7 @@ func (h *httpTransport) Listen(addr string, opts ...ListenOption) (Listener, err
 				}
 
 				// generate a certificate
-				cert, err := mls.Certificate(hosts...)
+				cert, err := mtls.Certificate(hosts...)
 				if err != nil {
 					return nil, err
 				}

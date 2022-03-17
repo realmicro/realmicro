@@ -81,7 +81,7 @@ func configure(e *etcdRegistry, opts ...registry.Option) error {
 	}
 
 	if e.options.Context != nil {
-		u, ok := e.options.Context.Value(authKey{}).(*authCreds)
+		u, ok := e.options.Context.Value(authKey{}).(*authCredit)
 		if ok {
 			config.Username = u.Username
 			config.Password = u.Password

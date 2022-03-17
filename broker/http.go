@@ -21,8 +21,8 @@ import (
 	"github.com/realmicro/realmicro/codec/json"
 	maddr "github.com/realmicro/realmicro/common/util/addr"
 	mnet "github.com/realmicro/realmicro/common/util/net"
-	mls "github.com/realmicro/realmicro/common/util/tls"
-	merr "github.com/realmicro/realmicro/errors"
+	mtls "github.com/realmicro/realmicro/common/util/tls"
+	merrors "github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/cache"
 	"golang.org/x/net/http2"
@@ -292,7 +292,7 @@ func (h *httpBroker) run(l net.Listener) {
 
 func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		err := merr.BadRequest("real.micro.broker", "Method not allowed")
+		err := merrors.BadRequest("real.micro.broker", "Method not allowed")
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 		return
 	}
@@ -302,7 +302,7 @@ func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		errr := merr.InternalServerError("real.micro.broker", "Error reading request body: %v", err)
+		errr := merrors.InternalServerError("real.micro.broker", "Error reading request body: %v", err)
 		w.WriteHeader(500)
 		w.Write([]byte(errr.Error()))
 		return
@@ -310,7 +310,7 @@ func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	var m *Message
 	if err = h.opts.Codec.Unmarshal(b, &m); err != nil {
-		errr := merr.InternalServerError("real.micro.broker", "Error parsing request body: %v", err)
+		errr := merrors.InternalServerError("real.micro.broker", "Error parsing request body: %v", err)
 		w.WriteHeader(500)
 		w.Write([]byte(errr.Error()))
 		return
@@ -320,7 +320,7 @@ func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	//delete(m.Header, ":topic")
 
 	if len(topic) == 0 {
-		errr := merr.InternalServerError("real.micro.broker", "Topic not found")
+		errr := merrors.InternalServerError("real.micro.broker", "Topic not found")
 		w.WriteHeader(500)
 		w.Write([]byte(errr.Error()))
 		return
@@ -384,7 +384,7 @@ func (h *httpBroker) Connect() error {
 				}
 
 				// generate a certificate
-				cert, err := mls.Certificate(hosts...)
+				cert, err := mtls.Certificate(hosts...)
 				if err != nil {
 					return nil, err
 				}
