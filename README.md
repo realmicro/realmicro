@@ -2,7 +2,7 @@
 
 ### TODO LIST
 - [ ] realmicro API Gateway
-- [ ] realmicro Admin UI
+- [ ] realmicro Admin Dashboard
 - [ ] realmicro Common Library
 - [ ] realmicro Broker of [asynq](https://github.com/hibiken/asynq)
 

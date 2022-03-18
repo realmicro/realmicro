@@ -18,6 +18,8 @@ const (
 	ClusterType = "cluster"
 	// NodeType means redis node.
 	NodeType = "node"
+	// Nil is an alias of redis.Nil.
+	Nil = red.Nil
 
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
