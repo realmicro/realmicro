@@ -34,7 +34,7 @@ func New(size int, interval time.Duration, opts ...Option) *RollingWindow {
 		size:     size,
 		win:      newWindow(size),
 		interval: interval,
-		lastTime: mtime.Now(),
+		lastTime: mtime.ReNow(),
 	}
 	for _, opt := range opts {
 		opt(w)
@@ -70,7 +70,7 @@ func (rw *RollingWindow) Reduce(fn func(b *Bucket)) {
 }
 
 func (rw *RollingWindow) span() int {
-	offset := int(mtime.Since(rw.lastTime) / rw.interval)
+	offset := int(mtime.ReSince(rw.lastTime) / rw.interval)
 	if 0 <= offset && offset < rw.size {
 		return offset
 	}
@@ -91,7 +91,7 @@ func (rw *RollingWindow) updateOffset() {
 	}
 
 	rw.offset = (offset + span) % rw.size
-	now := mtime.Now()
+	now := mtime.ReNow()
 	// align to interval time boundary
 	rw.lastTime = now - (now-rw.lastTime)%rw.interval
 }

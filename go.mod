@@ -12,6 +12,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/imdario/mergo v0.3.12
+	github.com/jinzhu/now v1.1.5
 	github.com/miekg/dns v1.1.47
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/nxadm/tail v1.4.8

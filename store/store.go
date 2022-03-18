@@ -42,7 +42,7 @@ type Record struct {
 	Value []byte `json:"value"`
 	// Any associated metadata for indexing
 	Metadata map[string]interface{} `json:"metadata"`
-	// Time to expire a record: TODO: change to timestamp
+	// ReTime to expire a record: TODO: change to timestamp
 	Expiry time.Duration `json:"expiry,omitempty"`
 }
 

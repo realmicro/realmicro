@@ -200,7 +200,7 @@ type errorWindow struct {
 
 func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
-	ew.reasons[ew.index] = fmt.Sprintf("%s %s", mtime.Time().Format(timeFormat), reason)
+	ew.reasons[ew.index] = fmt.Sprintf("%s %s", mtime.ReTime().Format(timeFormat), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
 	ew.count = mmath.MinInt(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()

@@ -73,9 +73,9 @@ type Token struct {
 	AccessToken string `json:"access_token"`
 	// RefreshToken to be used to generate a new token
 	RefreshToken string `json:"refresh_token"`
-	// Time of token creation
+	// ReTime of token creation
 	Created time.Time `json:"created"`
-	// Time of token expiry
+	// ReTime of token expiry
 	Expiry time.Time `json:"expiry"`
 }
 
