@@ -5,7 +5,6 @@ import (
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/config"
-	cetcd "github.com/realmicro/realmicro/config/source/etcd"
 	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/registry"
@@ -32,18 +31,18 @@ func main() {
 	serviceName := "helloworld"
 	etcdAddress := "127.0.0.1:2379"
 
-	var err error
-	cfg, err = config.NewConfig(config.WithSource(
-		cetcd.NewSource(
-			cetcd.WithAddress(etcdAddress),
-			cetcd.WithPrefix(serviceName+"/"),
-			cetcd.StripPrefix(true),
-		),
-	))
-	if err != nil {
-		logger.Fatal(err)
-		return
-	}
+	//var err error
+	//cfg, err = config.NewConfig(config.WithSource(
+	//	cetcd.NewSource(
+	//		cetcd.WithAddress(etcdAddress),
+	//		cetcd.WithPrefix(serviceName+"/"),
+	//		cetcd.StripPrefix(true),
+	//	),
+	//))
+	//if err != nil {
+	//	logger.Fatal(err)
+	//	return
+	//}
 
 	service := realmicro.NewService(
 		realmicro.Name(serviceName),

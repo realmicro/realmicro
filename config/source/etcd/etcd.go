@@ -40,7 +40,7 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 
 	kvs := make([]*mvccpb.KeyValue, 0, len(rsp.Kvs))
 	for _, v := range rsp.Kvs {
-		kvs = append(kvs, (*mvccpb.KeyValue)(v))
+		kvs = append(kvs, v)
 	}
 
 	data := makeMap(c.opts.Encoder, kvs, c.stripPrefix)
