@@ -9,5 +9,6 @@ message Request {
 }
 
 message Response {
-    string greeting = 2;
+    string greeting = 1;
+    string from_config = 2;
 }
