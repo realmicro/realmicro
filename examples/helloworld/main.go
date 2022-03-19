@@ -22,6 +22,10 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 	rsp.Greeting = "Hello " + req.Name
 	if cfg != nil {
 		logger.Info("config data:", cfg.Map())
+		// config in etcd:
+		// key: helloworld/test
+		// value: {"test": "test"}
+		logger.Info("test:", cfg.Get("test").String("test"))
 	}
 	return nil
 }
