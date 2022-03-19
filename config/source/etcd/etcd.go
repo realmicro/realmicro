@@ -128,7 +128,7 @@ func NewSource(opts ...source.Option) source.Source {
 	sp := ""
 	f, ok := options.Context.Value(prefixKey{}).(string)
 	if ok {
-		prefix = f
+		prefix = DefaultPrefix + f
 	}
 
 	if b, ok := options.Context.Value(stripPrefixKey{}).(bool); ok && b {
