@@ -101,6 +101,38 @@ func (s *Redis) Ping(ctx context.Context) (val bool) {
 	return
 }
 
+// Publish is the implementation of redis publish command.
+func (s *Redis) Publish(ctx context.Context, channel string, payload interface{}) (err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+		if _, err = conn.Publish(ctx, channel, payload).Result(); err != nil {
+			return err
+		}
+		return nil
+	}, acceptable)
+	return
+}
+
+// Subscribe is the implementation of redis subscribe command.
+func (s *Redis) Subscribe(ctx context.Context, channel string) (subscriber *red.PubSub, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+		if s.options.Type == NodeType {
+			subscriber = conn.(*red.Client).Subscribe(ctx, channel)
+		} else {
+			subscriber = conn.(*red.ClusterClient).Subscribe(ctx, channel)
+		}
+		return nil
+	}, acceptable)
+	return
+}
+
 // BitCount is redis bitcount command implementation.
 func (s *Redis) BitCount(ctx context.Context, key string, start, end int64) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1840,7 +1872,7 @@ func getRedis(r *Redis) (red.Cmdable, error) {
 	case ClusterType:
 		return getCluster(r)
 	case NodeType:
-		return getRedis(r)
+		return getClient(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.options.Type)
 	}

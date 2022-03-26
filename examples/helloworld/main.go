@@ -8,8 +8,10 @@ import (
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
 	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
+	mlogrus "github.com/realmicro/realmicro/logger/logrus"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -31,9 +33,13 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 }
 
 func main() {
+	serviceName := "helloworld"
+
+	logger.DefaultLogger = mlogrus.NewLogger(mlogrus.WithJSONFormatter(&logrus.JSONFormatter{}))
 	logger.Init(logger.WithLevel(logger.TraceLevel))
 
-	serviceName := "helloworld"
+	logger.Logf(logger.InfoLevel, "Example Name: %s", serviceName)
+
 	etcdAddress := "127.0.0.1:2379"
 
 	var err error
