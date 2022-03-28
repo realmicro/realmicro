@@ -1,9 +1,8 @@
 package logrus
 
 import (
-	"github.com/sirupsen/logrus"
-
 	"github.com/realmicro/realmicro/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type Options struct {

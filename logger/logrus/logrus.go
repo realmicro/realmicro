@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/realmicro/realmicro/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type entryLogger interface {
