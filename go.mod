@@ -3,7 +3,6 @@ module github.com/realmicro/realmicro
 go 1.15
 
 require (
-	e.coding.net/realmicro/realmicro/realmicro_example v0.0.0-20220328112609-52fb0d690822 // indirect
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
@@ -12,6 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
+	github.com/gorilla/handlers v1.5.1
 	github.com/hibiken/asynq v0.22.1
 	github.com/imdario/mergo v0.3.12
 	github.com/jinzhu/now v1.1.5

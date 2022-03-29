@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	//greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
-	"e.coding.net/realmicro/realmicro/realmicro_example/proto"
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/client"
+	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
