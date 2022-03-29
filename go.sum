@@ -1,5 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+e.coding.net/realmicro/realmicro/realmicro_example v0.0.0-20220328112609-52fb0d690822 h1:jGGqvgJtlyBir+ceqSZ6aqBmAV2YAkYu+PFqpwLCN2c=
+e.coding.net/realmicro/realmicro/realmicro_example v0.0.0-20220328112609-52fb0d690822/go.mod h1:73NySkf9pKeZu8v6kOBI2T3D/elFh5pTEYZXbejCsCs=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.4.16 h1:FtSW/jqD+l4ba5iPBj9CODVtgfYAD8w2wS923g/cFDk=
