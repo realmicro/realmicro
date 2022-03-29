@@ -12,7 +12,7 @@
 - [ ] realmicro Common Library
 - [ ] realmicro Broker
   - [ ] [asynq](https://github.com/hibiken/asynq)
-  - [ ] redis user Pub And Sub
+  - [ ] redis use Pub And Sub
 - [ ] realmicro CTL
 - [ ] realmicro More Examples
   - [ ] Breaker Wrapper Example
