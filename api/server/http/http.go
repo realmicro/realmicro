@@ -5,10 +5,8 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 
-	"github.com/gorilla/handlers"
 	"github.com/realmicro/realmicro/api/server"
 	"github.com/realmicro/realmicro/api/server/cors"
 	"github.com/realmicro/realmicro/logger"
@@ -62,7 +60,7 @@ func (s *httpServer) Handle(path string, handler http.Handler) {
 	}
 
 	// wrap with logger
-	handler = handlers.CombinedLoggingHandler(os.Stdout, handler)
+	//handler = handlers.CombinedLoggingHandler(os.Stdout, handler)
 
 	s.mux.Handle(path, handler)
 }
