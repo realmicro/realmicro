@@ -31,6 +31,16 @@ func New(id, detail string, code int32) error {
 	}
 }
 
+func Code(err error) int32 {
+	if err == nil {
+		return http.StatusOK
+	}
+	if e, ok := err.(*Error); ok {
+		return e.Code
+	}
+	return 0
+}
+
 // Parse tries to parse a JSON string into an error. If that
 // fails, it will set the given string as the error detail.
 func Parse(err string) *Error {
