@@ -14,7 +14,7 @@ type authKey struct{}
 type dialTimeoutKey struct{}
 type prefixCreateKey struct{}
 
-type authCreds struct {
+type authCredit struct {
 	Username string
 	Password string
 }
@@ -66,7 +66,7 @@ func Auth(username, password string) source.Option {
 		if o.Context == nil {
 			o.Context = context.Background()
 		}
-		o.Context = context.WithValue(o.Context, authKey{}, &authCreds{Username: username, Password: password})
+		o.Context = context.WithValue(o.Context, authKey{}, &authCredit{Username: username, Password: password})
 	}
 }
 

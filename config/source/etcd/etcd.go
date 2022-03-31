@@ -127,7 +127,7 @@ func NewSource(opts ...source.Option) source.Source {
 		DialTimeout: dialTimeout,
 	}
 
-	u, ok := options.Context.Value(authKey{}).(*authCreds)
+	u, ok := options.Context.Value(authKey{}).(*authCredit)
 	if ok {
 		config.Username = u.Username
 		config.Password = u.Password
