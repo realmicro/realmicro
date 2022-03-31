@@ -12,6 +12,7 @@ type prefixKey struct{}
 type stripPrefixKey struct{}
 type authKey struct{}
 type dialTimeoutKey struct{}
+type prefixCreateKey struct{}
 
 type authCreds struct {
 	Username string
@@ -46,6 +47,16 @@ func StripPrefix(strip bool) source.Option {
 		}
 
 		o.Context = context.WithValue(o.Context, stripPrefixKey{}, strip)
+	}
+}
+
+// WithPrefixCreate create prefix if source not found
+func WithPrefixCreate(ifCreated bool) source.Option {
+	return func(o *source.Options) {
+		if o.Context == nil {
+			o.Context = context.Background()
+		}
+		o.Context = context.WithValue(o.Context, prefixCreateKey{}, ifCreated)
 	}
 }
 

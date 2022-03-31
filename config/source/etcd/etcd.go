@@ -15,6 +15,7 @@ import (
 type etcd struct {
 	prefix      string
 	stripPrefix string
+	ifCreate    bool
 	opts        source.Options
 	client      *clientv3.Client
 	cerr        error
@@ -35,7 +36,18 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 	}
 
 	if rsp == nil || len(rsp.Kvs) == 0 {
-		return nil, fmt.Errorf("source not found: %s", c.prefix)
+		if c.ifCreate {
+			_, err = c.client.Put(context.Background(), c.prefix, "")
+			if err != nil {
+				return nil, err
+			}
+			rsp, err = c.client.Get(context.Background(), c.prefix, clientv3.WithPrefix())
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("source not found: %s", c.prefix)
+		}
 	}
 
 	kvs := make([]*mvccpb.KeyValue, 0, len(rsp.Kvs))
@@ -135,9 +147,13 @@ func NewSource(opts ...source.Option) source.Source {
 		sp = prefix
 	}
 
+	var ifCreate bool
+	ifCreate, _ = options.Context.Value(prefixCreateKey{}).(bool)
+
 	return &etcd{
 		prefix:      prefix,
 		stripPrefix: sp,
+		ifCreate:    ifCreate,
 		opts:        options,
 		client:      client,
 		cerr:        err,
