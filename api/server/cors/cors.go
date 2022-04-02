@@ -26,7 +26,7 @@ func CombinedCORSHandler(h http.Handler, config *Config) http.Handler {
 }
 
 // SetHeaders sets the CORS headers
-func SetHeaders(w http.ResponseWriter, _ *http.Request, config *Config) {
+func SetHeaders(w http.ResponseWriter, r *http.Request, config *Config) {
 	set := func(w http.ResponseWriter, k, v string) {
 		if v := w.Header().Get(k); len(v) > 0 {
 			return
@@ -51,6 +51,7 @@ func SetHeaders(w http.ResponseWriter, _ *http.Request, config *Config) {
 	}
 	if config.AllowHeaders == "" {
 		set(w, "Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		set(w, "Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
 	} else {
 		set(w, "Access-Control-Allow-Headers", config.AllowHeaders)
 	}
