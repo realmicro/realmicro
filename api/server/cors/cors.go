@@ -51,7 +51,6 @@ func SetHeaders(w http.ResponseWriter, r *http.Request, config *Config) {
 	}
 	if config.AllowHeaders == "" {
 		set(w, "Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		set(w, "Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
 	} else {
 		set(w, "Access-Control-Allow-Headers", config.AllowHeaders)
 	}
