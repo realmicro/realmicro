@@ -12,7 +12,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
-	github.com/gorilla/handlers v1.5.1
 	github.com/hibiken/asynq v0.22.1
 	github.com/imdario/mergo v0.3.12
 	github.com/jinzhu/now v1.1.5
@@ -24,7 +23,7 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/etcd/api/v3 v3.5.2
 	go.etcd.io/etcd/client/v3 v3.5.2
