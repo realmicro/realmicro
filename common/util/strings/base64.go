@@ -2,11 +2,11 @@ package strings
 
 import "encoding/base64"
 
-func Encode(in string) (out string) {
+func Base64Encode(in string) (out string) {
 	return base64.StdEncoding.EncodeToString([]byte(in))
 }
 
-func Decode(in string) (out string) {
+func Base64Decode(in string) (out string) {
 	outBytes, err := base64.StdEncoding.DecodeString(in)
 	if err == nil {
 		out = string(outBytes)

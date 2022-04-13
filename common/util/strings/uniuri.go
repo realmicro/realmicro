@@ -13,19 +13,19 @@ const (
 // StdChars is a set of standard characters allowed in uniuri string.
 var StdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 
-// New returns a new random string of the standard length, consisting of
+// NewUri returns a new random string of the standard length, consisting of
 // standard characters.
 func NewUri() string {
 	return NewUriLenChars(StdLen, StdChars)
 }
 
-// NewLen returns a new random string of the provided length, consisting of
+// NewUriLen returns a new random string of the provided length, consisting of
 // standard characters.
 func NewUriLen(length int) string {
 	return NewUriLenChars(length, StdChars)
 }
 
-// NewLenChars returns a new random string of the provided length, consisting
+// NewUriLenChars returns a new random string of the provided length, consisting
 // of the provided byte slice of allowed characters (maximum 256).
 func NewUriLenChars(length int, chars []byte) string {
 	if length == 0 {
