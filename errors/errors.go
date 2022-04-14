@@ -4,6 +4,7 @@ package errors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -130,4 +131,48 @@ func InternalServerError(id, format string, a ...interface{}) error {
 		Detail: fmt.Sprintf(format, a...),
 		Status: http.StatusText(500),
 	}
+}
+
+// Equal tries to compare errors
+func Equal(err1 error, err2 error) bool {
+	vErr1, ok1 := err1.(*Error)
+	vErr2, ok2 := err2.(*Error)
+
+	if ok1 != ok2 {
+		return false
+	}
+
+	if !ok1 {
+		return err1 == err2
+	}
+
+	if vErr1.Code != vErr2.Code {
+		return false
+	}
+
+	return true
+}
+
+// FromError try to convert go error to *Error
+func FromError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+	if verr, ok := err.(*Error); ok && verr != nil {
+		return verr
+	}
+
+	return Parse(err.Error())
+}
+
+// As finds the first error in err's chain that matches *Error
+func As(err error) (*Error, bool) {
+	if err == nil {
+		return nil, false
+	}
+	var merr *Error
+	if errors.As(err, &merr) {
+		return merr, true
+	}
+	return nil, false
 }

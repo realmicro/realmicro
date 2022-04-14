@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type metadataKey struct{}
+type metaKey struct{}
 
 // Metadata is our way of representing request headers internally.
 // They're used at the RPC level and translate back and forth
@@ -61,7 +61,7 @@ func Set(ctx context.Context, k, v string) context.Context {
 	} else {
 		md[k] = v
 	}
-	return context.WithValue(ctx, metadataKey{}, md)
+	return context.WithValue(ctx, metaKey{}, md)
 }
 
 // Get returns a single value from metadata in the context
@@ -84,7 +84,7 @@ func Get(ctx context.Context, key string) (string, bool) {
 
 // FromContext returns metadata from the given context
 func FromContext(ctx context.Context) (Metadata, bool) {
-	md, ok := ctx.Value(metadataKey{}).(Metadata)
+	md, ok := ctx.Value(metaKey{}).(Metadata)
 	if !ok {
 		return nil, ok
 	}
@@ -100,7 +100,7 @@ func FromContext(ctx context.Context) (Metadata, bool) {
 
 // NewContext creates a new context with the given metadata
 func NewContext(ctx context.Context, md Metadata) context.Context {
-	return context.WithValue(ctx, metadataKey{}, md)
+	return context.WithValue(ctx, metaKey{}, md)
 }
 
 // MergeContext merges metadata to existing metadata, overwriting if specified
@@ -108,7 +108,7 @@ func MergeContext(ctx context.Context, patchMd Metadata, overwrite bool) context
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	md, _ := ctx.Value(metadataKey{}).(Metadata)
+	md, _ := ctx.Value(metaKey{}).(Metadata)
 	cmd := make(Metadata, len(md))
 	for k, v := range md {
 		cmd[k] = v
@@ -122,5 +122,5 @@ func MergeContext(ctx context.Context, patchMd Metadata, overwrite bool) context
 			delete(cmd, k)
 		}
 	}
-	return context.WithValue(ctx, metadataKey{}, cmd)
+	return context.WithValue(ctx, metaKey{}, cmd)
 }
