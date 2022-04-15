@@ -42,6 +42,7 @@ func Cluster() broker.Option {
 	}
 }
 
+// Pass is redis password
 func Pass(pass string) broker.Option {
 	return func(o *broker.Options) {
 		bo := o.Context.Value(optionsKey).(*brokerOptions)
@@ -93,6 +94,7 @@ func getPublishOptions(o *broker.PublishOptions) *publishOptions {
 	}
 }
 
+// Queue publish with priority queue
 func Queue(queue string) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
 		po := getPublishOptions(o)
@@ -100,6 +102,7 @@ func Queue(queue string) broker.PublishOption {
 	}
 }
 
+// PubOpr pub opr
 func PubOpr(opr string) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
 		po := getPublishOptions(o)
@@ -127,6 +130,7 @@ type subscribeOptions struct {
 	Opr string
 }
 
+// SubOpr sub opr
 func SubOpr(opr string) broker.SubscribeOption {
 	return func(o *broker.SubscribeOptions) {
 		po := o.Context.Value(subscribeKey).(*subscribeOptions)

@@ -1,16 +1,13 @@
 package asynq
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/realmicro/realmicro/broker"
-	"github.com/realmicro/realmicro/metadata"
 )
 
 func subscribe(t *testing.T, b broker.Broker, topic string, handle broker.Handler, opts ...broker.SubscribeOption) broker.Subscriber {
@@ -78,15 +75,12 @@ func TestBroker(t *testing.T) {
 			Body: []byte("empty"),
 		})
 
-		ctx := metadata.NewContext(context.Background(), metadata.Metadata{
-			"X-Trace-Id": uuid.New().String(),
-		})
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("hello"),
-		}, broker.PublishContext(ctx), PubOpr("opr1"))
+		}, PubOpr("opr1"))
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("world"),
-		}, broker.PublishContext(ctx), PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
+		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
 
 		time.Sleep(10 * time.Second)
 

@@ -159,9 +159,7 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 		return err
 	}
 
-	options := broker.PublishOptions{
-		Context: context.Background(),
-	}
+	options := broker.PublishOptions{}
 	for _, o := range opts {
 		o(&options)
 	}
@@ -185,7 +183,7 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 	if pOpts.Retention > 0 {
 		taskOpts = append(taskOpts, asynq.Retention(pOpts.Retention))
 	}
-	info, err := b.client.EnqueueContext(options.Context, task, taskOpts...)
+	info, err := b.client.Enqueue(task, taskOpts...)
 	if err != nil {
 		return err
 	}
