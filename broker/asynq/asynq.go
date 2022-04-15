@@ -5,18 +5,79 @@ import (
 	"crypto/tls"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/hibiken/asynq"
 	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/codec"
 	"github.com/realmicro/realmicro/codec/json"
 	"github.com/realmicro/realmicro/logger"
 )
+
+var (
+	DefaultPath = "mbroker:"
+)
+
+// publication is an internal publication for the Redis broker.
+type publication struct {
+	topic   string
+	opr     string
+	message *broker.Message
+	err     error
+}
+
+// Topic returns the topic this publication applies to.
+func (p *publication) Topic() string {
+	return p.topic + ":" + p.opr
+}
+
+// Message returns the broker message of the publication.
+func (p *publication) Message() *broker.Message {
+	return p.message
+}
+
+// Ack sends an acknowledgement to the broker. However this is not supported
+// is Redis and therefore this is a no-op.
+func (p *publication) Ack() error {
+	return nil
+}
+
+func (p *publication) Error() error {
+	return p.err
+}
+
+type subscriber struct {
+	codec   codec.Marshaler
+	opts    broker.SubscribeOptions
+	topic   string
+	opr     string
+	handler broker.Handler
+	b       *asynqBroker
+}
+
+// Options returns the subscriber options.
+func (s *subscriber) Options() broker.SubscribeOptions {
+	return s.opts
+}
+
+// Topic returns the topic of the subscriber.
+func (s *subscriber) Topic() string {
+	return s.topic
+}
+
+// Unsubscribe unsubscribes the subscriber and frees the connection.
+func (s *subscriber) Unsubscribe() error {
+	return s.b.unsubscribe(s)
+}
 
 type asynqBroker struct {
 	opts   broker.Options
 	bOpts  *brokerOptions
 	client *asynq.Client
 	server *asynq.Server
+
+	sync.RWMutex
+	subscribers map[string]map[string]*subscriber
 }
 
 // String returns the name of the broker implementation.
@@ -59,32 +120,38 @@ func (b *asynqBroker) Connect() error {
 			InsecureSkipVerify: true,
 		}
 	}
-	if b.bOpts.Type == NodeType {
+	if b.bOpts.nodeType == NodeType {
 		redisOpt := &asynq.RedisClientOpt{
 			Addr:      b.opts.Addrs[0],
-			Password:  b.bOpts.Pass,
-			DB:        b.bOpts.DB,
+			Password:  b.bOpts.pass,
+			DB:        b.bOpts.db,
 			TLSConfig: tlsConfig,
 		}
 		// redis node mode
 		b.client = asynq.NewClient(redisOpt)
-		b.server = asynq.NewServer(redisOpt, asynq.Config{})
 	} else {
 		redisOpt := &asynq.RedisClusterClientOpt{
 			Addrs:     b.opts.Addrs,
-			Password:  b.bOpts.Pass,
+			Password:  b.bOpts.pass,
 			TLSConfig: tlsConfig,
 		}
 		// redis cluster node
 		b.client = asynq.NewClient(redisOpt)
-		b.server = asynq.NewServer(redisOpt, asynq.Config{})
 	}
+
 	return nil
 }
 
 func (b *asynqBroker) Disconnect() error {
+	b.Lock()
+	defer b.Unlock()
+
 	err := b.client.Close()
 	b.client = nil
+	if b.server != nil {
+		b.server.Shutdown()
+		b.server = nil
+	}
 	return err
 }
 
@@ -94,16 +161,20 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 		return err
 	}
 
-	pOpts := &publishOptions{}
-	options := broker.PublishOptions{
-		Context: context.WithValue(context.Background(), optionsKey, pOpts),
-	}
+	options := broker.PublishOptions{}
 	for _, o := range opts {
 		o(&options)
 	}
 
-	t := fmt.Sprintf("%s:%s", topic, pOpts.Opr)
-	task := asynq.NewTask(t, v)
+	pOpts := &publishOptions{}
+	if options.Context != nil {
+		if pv, ok := options.Context.Value(publishKey).(*publishOptions); ok {
+			pOpts = pv
+		}
+	}
+
+	typename := fmt.Sprintf("%s%s:%s", DefaultPath, topic, pOpts.Opr)
+	task := asynq.NewTask(typename, v)
 	var taskOpts []asynq.Option
 	if len(pOpts.Queue) > 0 {
 		taskOpts = append(taskOpts, asynq.Queue(pOpts.Queue))
@@ -114,7 +185,7 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 	if pOpts.Retention > 0 {
 		taskOpts = append(taskOpts, asynq.Retention(pOpts.Retention))
 	}
-	info, err := b.client.Enqueue(task, taskOpts...)
+	info, err := b.client.EnqueueContext(options.Context, task, taskOpts...)
 	if err != nil {
 		return err
 	}
@@ -126,13 +197,150 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 }
 
 func (b *asynqBroker) Subscribe(topic string, h broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
-	return nil, nil
+	sOpts := &subscribeOptions{}
+	options := broker.SubscribeOptions{
+		Context: context.WithValue(context.Background(), subscribeKey, sOpts),
+	}
+	for _, o := range opts {
+		o(&options)
+	}
+
+	if err := b.startServer(); err != nil {
+		return nil, err
+	}
+
+	s := &subscriber{
+		codec:   b.opts.Codec,
+		opts:    options,
+		topic:   topic,
+		opr:     sOpts.Opr,
+		handler: h,
+		b:       b,
+	}
+
+	// subscribe now
+	if err := b.subscribe(s); err != nil {
+		return nil, err
+	}
+
+	// return the subscriber
+	return s, nil
+}
+
+func (b *asynqBroker) startServer() error {
+	b.Lock()
+	defer b.Unlock()
+
+	if b.server != nil {
+		return nil
+	}
+
+	var tlsConfig *tls.Config
+	if b.bOpts.tls {
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+	asynqCfg := asynq.Config{
+		LogLevel: asynq.ErrorLevel,
+	}
+	if b.bOpts.queues != nil && len(b.bOpts.queues) > 0 {
+		asynqCfg.Queues = b.bOpts.queues
+	}
+	if b.bOpts.nodeType == NodeType {
+		redisOpt := &asynq.RedisClientOpt{
+			Addr:      b.opts.Addrs[0],
+			Password:  b.bOpts.pass,
+			DB:        b.bOpts.db,
+			TLSConfig: tlsConfig,
+		}
+		// redis node mode
+		b.server = asynq.NewServer(redisOpt, asynqCfg)
+	} else {
+		redisOpt := &asynq.RedisClusterClientOpt{
+			Addrs:     b.opts.Addrs,
+			Password:  b.bOpts.pass,
+			TLSConfig: tlsConfig,
+		}
+		// redis cluster node
+		b.server = asynq.NewServer(redisOpt, asynqCfg)
+	}
+
+	mux := asynq.NewServeMux()
+	mux.Handle(DefaultPath, asynq.HandlerFunc(b.processTask))
+
+	go func() {
+		if err := b.server.Run(mux); err != nil {
+			logger.Fatal(err)
+		}
+	}()
+
+	return nil
+}
+
+func (b *asynqBroker) subscribe(s *subscriber) error {
+	b.Lock()
+	defer b.Unlock()
+
+	if ts, ok := b.subscribers[s.topic]; ok {
+		ts[s.opr] = s
+	} else {
+		b.subscribers[s.topic] = make(map[string]*subscriber)
+		b.subscribers[s.topic][s.opr] = s
+	}
+	return nil
+}
+
+func (b *asynqBroker) unsubscribe(s *subscriber) error {
+	b.Lock()
+	defer b.Unlock()
+
+	if ts, ok := b.subscribers[s.topic]; ok {
+		delete(ts, s.opr)
+		if len(ts) == 0 {
+			delete(b.subscribers, s.topic)
+		}
+	}
+	return nil
+}
+
+func (b *asynqBroker) processTask(ctx context.Context, t *asynq.Task) error {
+	ts := strings.Split(t.Type(), ":")
+	if len(ts) != 3 {
+		return fmt.Errorf("error type: %v", t.Type())
+	}
+	if logger.V(logger.TraceLevel, logger.DefaultLogger) {
+		logger.Tracef("async task topic: %s, opr: %s, payload: %s", ts[1], ts[2], t.Payload())
+	}
+	if topicSub, ok := b.subscribers[ts[1]]; ok {
+		if s, ok := topicSub[ts[2]]; ok {
+			var m broker.Message
+			if err := s.codec.Unmarshal(t.Payload(), &m); err != nil {
+				return err
+			}
+			p := &publication{
+				topic:   ts[1],
+				opr:     ts[2],
+				message: &m,
+			}
+			if p.err = s.handler(p); p.err != nil {
+				return p.err
+			}
+
+			if s.opts.AutoAck {
+				if err := p.Ack(); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {
 	bOpts := &brokerOptions{
-		Type: NodeType,
-		DB:   DefaultDB,
+		nodeType: NodeType,
+		db:       DefaultDB,
 	}
 
 	options := broker.Options{
@@ -145,7 +353,8 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 	}
 
 	return &asynqBroker{
-		opts:  options,
-		bOpts: bOpts,
+		opts:        options,
+		bOpts:       bOpts,
+		subscribers: make(map[string]map[string]*subscriber),
 	}
 }

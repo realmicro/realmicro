@@ -1,6 +1,7 @@
 package asynq
 
 import (
+	"context"
 	"time"
 
 	"github.com/realmicro/realmicro/broker"
@@ -26,24 +27,25 @@ var (
 )
 
 type brokerOptions struct {
-	Type string
-	Pass string
-	DB   int
-	tls  bool
+	nodeType string
+	pass     string
+	db       int
+	tls      bool
+	queues   map[string]int
 }
 
 // Cluster customizes the given Redis as a cluster
 func Cluster() broker.Option {
 	return func(o *broker.Options) {
 		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.Type = ClusterType
+		bo.nodeType = ClusterType
 	}
 }
 
 func Pass(pass string) broker.Option {
 	return func(o *broker.Options) {
 		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.Pass = pass
+		bo.pass = pass
 	}
 }
 
@@ -51,7 +53,7 @@ func Pass(pass string) broker.Option {
 func DB(db int) broker.Option {
 	return func(o *broker.Options) {
 		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.DB = db
+		bo.db = db
 	}
 }
 
@@ -63,6 +65,14 @@ func Tls(b bool) broker.Option {
 	}
 }
 
+// Queues multiple queues with different priority level
+func Queues(queues map[string]int) broker.Option {
+	return func(o *broker.Options) {
+		bo := o.Context.Value(optionsKey).(*brokerOptions)
+		bo.queues = queues
+	}
+}
+
 type publishOptions struct {
 	Queue     string
 	Opr       string
@@ -70,30 +80,56 @@ type publishOptions struct {
 	Retention time.Duration
 }
 
+func getPublishOptions(o *broker.PublishOptions) *publishOptions {
+	if o.Context == nil {
+		o.Context = context.Background()
+	}
+	poV := o.Context.Value(publishKey)
+	if poV == nil {
+		po := &publishOptions{}
+		o.Context = context.WithValue(o.Context, publishKey, po)
+		return po
+	}
+	return poV.(*publishOptions)
+}
+
 func Queue(queue string) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
-		po := o.Context.Value(publishKey).(*publishOptions)
+		po := getPublishOptions(o)
 		po.Queue = queue
 	}
 }
 
-func Opr(opr string) broker.PublishOption {
+func PubOpr(opr string) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
-		po := o.Context.Value(publishKey).(*publishOptions)
+		po := getPublishOptions(o)
 		po.Opr = opr
 	}
 }
 
+// ProcessIn schedule tasks to be processed in the future
 func ProcessIn(t time.Duration) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
-		po := o.Context.Value(publishKey).(*publishOptions)
+		po := getPublishOptions(o)
 		po.ProcessIn = t
 	}
 }
 
+// Retention task to be kept in the queue
 func Retention(t time.Duration) broker.PublishOption {
 	return func(o *broker.PublishOptions) {
-		po := o.Context.Value(publishKey).(*publishOptions)
+		po := getPublishOptions(o)
 		po.Retention = t
+	}
+}
+
+type subscribeOptions struct {
+	Opr string
+}
+
+func SubOpr(opr string) broker.SubscribeOption {
+	return func(o *broker.SubscribeOptions) {
+		po := o.Context.Value(subscribeKey).(*subscribeOptions)
+		po.Opr = opr
 	}
 }
