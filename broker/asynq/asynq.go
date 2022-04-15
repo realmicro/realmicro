@@ -161,7 +161,9 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 		return err
 	}
 
-	options := broker.PublishOptions{}
+	options := broker.PublishOptions{
+		Context: context.Background(),
+	}
 	for _, o := range opts {
 		o(&options)
 	}

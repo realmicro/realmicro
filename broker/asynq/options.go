@@ -84,13 +84,13 @@ func getPublishOptions(o *broker.PublishOptions) *publishOptions {
 	if o.Context == nil {
 		o.Context = context.Background()
 	}
-	poV := o.Context.Value(publishKey)
-	if poV == nil {
+	if v, ok := o.Context.Value(publishKey).(*publishOptions); ok {
+		return v
+	} else {
 		po := &publishOptions{}
 		o.Context = context.WithValue(o.Context, publishKey, po)
 		return po
 	}
-	return poV.(*publishOptions)
 }
 
 func Queue(queue string) broker.PublishOption {

@@ -53,6 +53,13 @@ func TestBroker(t *testing.T) {
 	msgs := make(chan string, 10)
 
 	go func() {
+		s0 := subscribe(t, b, "test", func(event broker.Event) error {
+			m := event.Message()
+			fmt.Println(event.Topic(), string(m.Body))
+			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
+			return nil
+		})
+
 		s1 := subscribe(t, b, "test", func(event broker.Event) error {
 			m := event.Message()
 			fmt.Println(event.Topic(), string(m.Body))
@@ -67,6 +74,10 @@ func TestBroker(t *testing.T) {
 			return nil
 		}, SubOpr("opr2"))
 
+		publish(t, b, "test", &broker.Message{
+			Body: []byte("hello, world!"),
+		})
+
 		ctx := metadata.NewContext(context.Background(), metadata.Metadata{
 			"X-Trace-Id": uuid.New().String(),
 		})
@@ -79,6 +90,7 @@ func TestBroker(t *testing.T) {
 
 		time.Sleep(10 * time.Second)
 
+		unsubscribe(t, s0)
 		unsubscribe(t, s1)
 		unsubscribe(t, s2)
 
@@ -91,6 +103,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	exp := []string{
+		"test::hello, world!",
 		"test:opr1:hello",
 		"test:opr2:world",
 	}
@@ -104,6 +117,4 @@ func TestBroker(t *testing.T) {
 	if !reflect.DeepEqual(actual, exp) {
 		t.Fatalf("expected %v, got %v", exp, actual)
 	}
-
-	time.Sleep(11 * time.Second)
 }
