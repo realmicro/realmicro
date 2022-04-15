@@ -75,7 +75,7 @@ func TestBroker(t *testing.T) {
 		}, SubOpr("opr2"))
 
 		publish(t, b, "test", &broker.Message{
-			Body: []byte("hello, world!"),
+			Body: []byte("empty"),
 		})
 
 		ctx := metadata.NewContext(context.Background(), metadata.Metadata{
@@ -103,7 +103,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	exp := []string{
-		"test::hello, world!",
+		"test::empty",
 		"test:opr1:hello",
 		"test:opr2:world",
 	}

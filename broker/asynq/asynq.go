@@ -9,7 +9,6 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/realmicro/realmicro/broker"
-	"github.com/realmicro/realmicro/codec"
 	"github.com/realmicro/realmicro/codec/json"
 	"github.com/realmicro/realmicro/logger"
 )
@@ -47,7 +46,6 @@ func (p *publication) Error() error {
 }
 
 type subscriber struct {
-	codec   codec.Marshaler
 	opts    broker.SubscribeOptions
 	topic   string
 	opr     string
@@ -212,7 +210,6 @@ func (b *asynqBroker) Subscribe(topic string, h broker.Handler, opts ...broker.S
 	}
 
 	s := &subscriber{
-		codec:   b.opts.Codec,
 		opts:    options,
 		topic:   topic,
 		opr:     sOpts.Opr,
@@ -314,28 +311,30 @@ func (b *asynqBroker) processTask(ctx context.Context, t *asynq.Task) error {
 	if logger.V(logger.TraceLevel, logger.DefaultLogger) {
 		logger.Tracef("async task topic: %s, opr: %s, payload: %s", ts[1], ts[2], t.Payload())
 	}
-	if topicSub, ok := b.subscribers[ts[1]]; ok {
-		if s, ok := topicSub[ts[2]]; ok {
-			var m broker.Message
-			if err := s.codec.Unmarshal(t.Payload(), &m); err != nil {
-				return err
-			}
-			p := &publication{
-				topic:   ts[1],
-				opr:     ts[2],
-				message: &m,
-			}
-			if p.err = s.handler(p); p.err != nil {
-				return p.err
-			}
 
-			if s.opts.AutoAck {
-				if err := p.Ack(); err != nil {
-					return err
-				}
-			}
+	var m broker.Message
+	if err := b.opts.Codec.Unmarshal(t.Payload(), &m); err != nil {
+		return err
+	}
+	p := &publication{
+		topic:   ts[1],
+		opr:     ts[2],
+		message: &m,
+	}
+
+	var s *subscriber
+	b.RLock()
+	if topicSub, ok := b.subscribers[ts[1]]; ok {
+		s = topicSub[ts[2]]
+	}
+	b.RUnlock()
+
+	if s != nil {
+		if p.err = s.handler(p); p.err != nil {
+			return p.err
 		}
 	}
+
 	return nil
 }
 
