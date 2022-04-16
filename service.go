@@ -3,11 +3,11 @@ package realmicro
 import (
 	"os"
 	"os/signal"
-	rtime "runtime"
+	"runtime"
 	"sync"
 
 	"github.com/realmicro/realmicro/client"
-	signalutil "github.com/realmicro/realmicro/common/util/signal"
+	msignal "github.com/realmicro/realmicro/common/util/signal"
 	"github.com/realmicro/realmicro/common/util/wrapper"
 	"github.com/realmicro/realmicro/debug/handler"
 	"github.com/realmicro/realmicro/debug/stats"
@@ -183,9 +183,9 @@ func (s *service) Run() (err error) {
 	// start the profiler
 	if s.opts.Profile != nil {
 		// to view mutex contention
-		rtime.SetMutexProfileFraction(5)
+		runtime.SetMutexProfileFraction(5)
 		// to view blocking profile
-		rtime.SetBlockProfileRate(1)
+		runtime.SetBlockProfileRate(1)
 
 		if err = s.opts.Profile.Start(); err != nil {
 			return err
@@ -208,7 +208,7 @@ func (s *service) Run() (err error) {
 
 	ch := make(chan os.Signal, 1)
 	if s.opts.Signal {
-		signal.Notify(ch, signalutil.Shutdown()...)
+		signal.Notify(ch, msignal.Shutdown()...)
 	}
 
 	select {

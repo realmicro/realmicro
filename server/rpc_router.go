@@ -531,16 +531,16 @@ func (router *router) ProcessMessage(ctx context.Context, msg Message) (err erro
 		// we may have multiple handlers per subscriber
 		for i := 0; i < len(sub.handlers); i++ {
 			// get the handler
-			handler := sub.handlers[i]
+			h := sub.handlers[i]
 
 			var isVal bool
 			var req reflect.Value
 
 			// check whether the handler is a pointer
-			if handler.reqType.Kind() == reflect.Ptr {
-				req = reflect.New(handler.reqType.Elem())
+			if h.reqType.Kind() == reflect.Ptr {
+				req = reflect.New(h.reqType.Elem())
 			} else {
-				req = reflect.New(handler.reqType)
+				req = reflect.New(h.reqType)
 				isVal = true
 			}
 
@@ -567,15 +567,15 @@ func (router *router) ProcessMessage(ctx context.Context, msg Message) (err erro
 				if sub.typ.Kind() != reflect.Func {
 					vals = append(vals, sub.rcvr)
 				}
-				if handler.ctxType != nil {
+				if h.ctxType != nil {
 					vals = append(vals, reflect.ValueOf(ctx))
 				}
 
 				// values to pass the handler
 				vals = append(vals, reflect.ValueOf(msg.Payload()))
 
-				// execute the actuall call of the handler
-				returnValues := handler.method.Call(vals)
+				// execute the actual call of the handler
+				returnValues := h.method.Call(vals)
 				if rerr := returnValues[0].Interface(); rerr != nil {
 					err = rerr.(error)
 				}
@@ -583,8 +583,8 @@ func (router *router) ProcessMessage(ctx context.Context, msg Message) (err erro
 			}
 
 			// wrap with subscriber wrappers
-			for i := len(router.subWrappers); i > 0; i-- {
-				fn = router.subWrappers[i-1](fn)
+			for j := len(router.subWrappers); j > 0; j-- {
+				fn = router.subWrappers[j-1](fn)
 			}
 
 			// create new rpc message
