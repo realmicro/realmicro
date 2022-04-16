@@ -50,34 +50,35 @@ func TestBroker(t *testing.T) {
 	msgs := make(chan string, 10)
 
 	go func() {
-		s0 := subscribe(t, b, "test", func(event broker.Event) error {
+		s0 := subscribe(t, b, "test0", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println(event.Topic(), string(m.Body))
+			fmt.Println("[s0] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		})
 
 		s1 := subscribe(t, b, "test", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println(event.Topic(), string(m.Body))
+			fmt.Println("[s1] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, SubOpr("opr1"))
 
 		s2 := subscribe(t, b, "test", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println(event.Topic(), string(m.Body))
+			fmt.Println("[s2] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, SubOpr("opr2"))
 
-		publish(t, b, "test", &broker.Message{
+		publish(t, b, "test0", &broker.Message{
 			Body: []byte("empty"),
 		})
 
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("hello"),
 		}, PubOpr("opr1"))
+
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("world"),
 		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
@@ -97,7 +98,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	exp := []string{
-		"test::empty",
+		"test0::empty",
 		"test:opr1:hello",
 		"test:opr2:world",
 	}
