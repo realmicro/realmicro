@@ -98,7 +98,7 @@ func TestBroker(t *testing.T) {
 	}
 
 	exp := []string{
-		"test0::empty",
+		"test0:empty",
 		"test:opr1:hello",
 		"test:opr2:world",
 	}

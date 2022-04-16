@@ -27,6 +27,9 @@ type publication struct {
 
 // Topic returns the topic this publication applies to.
 func (p *publication) Topic() string {
+	if len(p.opr) == 0 {
+		return p.topic
+	}
 	return p.topic + ":" + p.opr
 }
 
