@@ -315,6 +315,7 @@ func (b *asynqBroker) processTask(ctx context.Context, t *asynq.Task) error {
 
 	var m broker.Message
 	if err := b.opts.Codec.Unmarshal(t.Payload(), &m); err != nil {
+		logger.Errorf("Asynq Broker Process Task Codec.Unmarshal error: %v", err)
 		return err
 	}
 	p := &publication{
