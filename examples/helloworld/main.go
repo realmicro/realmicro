@@ -18,6 +18,10 @@ var (
 	cfg config.Config
 )
 
+type TestInfo struct {
+	Test string `json:"test"`
+}
+
 type Greeter struct{}
 
 func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.Response) error {
@@ -27,8 +31,11 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 		// config in etcd:
 		// key: helloworld/test
 		// value: {"test": "test"}
-		logger.Info("test : ", cfg.Get("test").String("test"))
-		logger.Info("test : ", cfg.Get("1", "t").String("test"))
+		var t1, t2 TestInfo
+		cfg.Get("test").Scan(&t1)
+		cfg.Get("1", "t").Scan(&t2)
+		logger.Info("test : ", t1)
+		logger.Info("test : ", t2)
 	}
 	return nil
 }
