@@ -48,6 +48,7 @@ func main() {
 			cetcd.WithAddress(etcdAddress),
 			cetcd.WithPrefix(serviceName+"/"),
 			cetcd.StripPrefix(true),
+			cetcd.WithPrefixCreate(true),
 		),
 	))
 	if err != nil {
