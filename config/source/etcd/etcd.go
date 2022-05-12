@@ -3,6 +3,7 @@ package etcd
 import (
 	"context"
 	"fmt"
+	"github.com/realmicro/realmicro/logger"
 	"net"
 	"time"
 
@@ -56,6 +57,7 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 	}
 
 	data := makeMap(c.opts.Encoder, kvs, c.stripPrefix)
+	logger.Infof("etcd data: %+v", data)
 
 	b, err := c.opts.Encoder.Encode(data)
 	if err != nil {
