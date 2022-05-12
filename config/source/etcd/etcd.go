@@ -56,6 +56,7 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 	for _, v := range rsp.Kvs {
 		kvs = append(kvs, v)
 	}
+	logger.Infof("etcd data: %+v", kvs)
 
 	data := makeMap(c.opts.Encoder, kvs, c.stripPrefix)
 	logger.Infof("etcd data: %+v", data)
