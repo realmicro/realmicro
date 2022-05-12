@@ -37,9 +37,8 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 	}
 
 	if rsp == nil || len(rsp.Kvs) == 0 {
-		logger.Infof("rsp == nil || len(rsp.Kvs) == 0")
 		if c.ifCreate {
-			_, err = c.client.Put(context.Background(), c.prefix, "")
+			_, err = c.client.Put(context.Background(), c.prefix, "etcdv3_dir_$2H#%gRe3*t")
 			if err != nil {
 				return nil, err
 			}

@@ -87,6 +87,7 @@ func update(e encoder.Encoder, data map[string]interface{}, v *mvccpb.KeyValue, 
 		// set kvals for next iterator
 		kvals = kval
 	}
+	fmt.Println(data)
 
 	return data
 }
