@@ -1,7 +1,6 @@
 package etcd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/realmicro/realmicro/config/encoder"
@@ -40,10 +39,7 @@ func update(e encoder.Encoder, data map[string]interface{}, v *mvccpb.KeyValue, 
 	// remove prefix if non empty, and ensure leading / is removed as well
 	vkey := strings.TrimPrefix(strings.TrimPrefix(string(v.Key), stripPrefix), "/")
 	// split on prefix
-	haveSplit := strings.Contains(vkey, "/")
 	keys := strings.Split(vkey, "/")
-
-	fmt.Println(string(v.Key), action, stripPrefix, vkey, haveSplit, keys)
 
 	var vals interface{}
 	e.Decode(v.Value, &vals)
@@ -74,7 +70,6 @@ func update(e encoder.Encoder, data map[string]interface{}, v *mvccpb.KeyValue, 
 		// set kvals for next iterator
 		kvals = kval
 	}
-	fmt.Println(data)
 
 	return data
 }
