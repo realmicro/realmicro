@@ -27,7 +27,7 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 		// config in etcd:
 		// key: helloworld/test
 		// value: {"test": "test"}
-		logger.Info("test:", cfg.Get("test").String("test"))
+		logger.Info("test ==> ", cfg.Get("1", "t").String("test"))
 	}
 	return nil
 }
