@@ -48,19 +48,6 @@ func update(e encoder.Encoder, data map[string]interface{}, v *mvccpb.KeyValue, 
 	var vals interface{}
 	e.Decode(v.Value, &vals)
 
-	if !haveSplit && len(keys) == 1 {
-		switch action {
-		case "delete":
-			data = make(map[string]interface{})
-		default:
-			v, ok := vals.(map[string]interface{})
-			if ok {
-				data = v
-			}
-		}
-		return data
-	}
-
 	// set data for first iteration
 	kvals := data
 	// iterate the keys and make maps
