@@ -37,6 +37,7 @@ func (c *etcd) Read() (*source.ChangeSet, error) {
 	}
 
 	if rsp == nil || len(rsp.Kvs) == 0 {
+		logger.Infof("rsp == nil || len(rsp.Kvs) == 0")
 		if c.ifCreate {
 			_, err = c.client.Put(context.Background(), c.prefix, "")
 			if err != nil {

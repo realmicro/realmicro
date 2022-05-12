@@ -1,6 +1,7 @@
 package etcd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/realmicro/realmicro/config/encoder"
@@ -37,6 +38,7 @@ func makeMap(e encoder.Encoder, kv []*mvccpb.KeyValue, stripPrefix string) map[s
 
 func update(e encoder.Encoder, data map[string]interface{}, v *mvccpb.KeyValue, action, stripPrefix string) map[string]interface{} {
 	// remove prefix if non empty, and ensure leading / is removed as well
+	fmt.Println(v.Key, action, stripPrefix)
 	vkey := strings.TrimPrefix(strings.TrimPrefix(string(v.Key), stripPrefix), "/")
 	// split on prefix
 	haveSplit := strings.Contains(vkey, "/")
