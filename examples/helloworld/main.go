@@ -47,7 +47,7 @@ func main() {
 	cfg, err = config.NewConfig(config.WithSource(
 		cetcd.NewSource(
 			cetcd.WithAddress(etcdAddress),
-			cetcd.WithPrefix(serviceName+"/"),
+			cetcd.WithPrefix(serviceName),
 			cetcd.StripPrefix(true),
 			cetcd.WithPrefixCreate(true),
 		),
