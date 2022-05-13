@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/realmicro/realmicro/codec"
 )
 
@@ -24,9 +22,9 @@ func (c *Codec) ReadBody(b interface{}) error {
 	if b == nil {
 		return nil
 	}
-	if pb, ok := b.(proto.Message); ok {
-		return jsonpb.UnmarshalNext(c.Decoder, pb)
-	}
+	//if pb, ok := b.(proto.Message); ok {
+	//	return jsonpb.UnmarshalNext(c.Decoder, pb)
+	//}
 	return c.Decoder.Decode(b)
 }
 
