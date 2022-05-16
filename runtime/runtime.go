@@ -25,7 +25,7 @@ type Runtime interface {
 	Read(...ReadOption) ([]*Service, error)
 	// Update the service in place
 	Update(*Service, ...UpdateOption) error
-	// Remove a service
+	// Delete Remove a service
 	Delete(*Service, ...DeleteOption) error
 	// Logs returns the logs for a service
 	Logs(*Service, ...LogsOption) (LogStream, error)
@@ -37,7 +37,7 @@ type Runtime interface {
 	String() string
 }
 
-// Stream returns a log stream
+// LogStream Stream returns a log stream
 type LogStream interface {
 	Error() error
 	Chan() chan LogRecord
@@ -61,7 +61,7 @@ type Scheduler interface {
 type EventType int
 
 const (
-	// Create is emitted when a new build has been craeted
+	// Create is emitted when a new build has been created
 	Create EventType = iota
 	// Update is emitted when a new update become available
 	Update
@@ -69,7 +69,7 @@ const (
 	Delete
 )
 
-// String returns human readable event type
+// String returns human-readable event type
 func (t EventType) String() string {
 	switch t {
 	case Create:

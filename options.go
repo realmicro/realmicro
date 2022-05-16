@@ -20,7 +20,7 @@ import (
 	//"github.com/urfave/cli/v2"
 )
 
-// Options for micro service
+// Options for realmicro service
 type Options struct {
 	Auth   auth.Auth
 	Broker broker.Broker

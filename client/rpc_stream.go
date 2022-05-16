@@ -23,7 +23,7 @@ type rpcStream struct {
 	// signal whether we should send EOS
 	sendEOS bool
 
-	// release releases the connection back to the pool
+	// release the connection back to the pool
 	release func(err error)
 }
 

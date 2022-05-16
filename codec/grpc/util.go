@@ -19,7 +19,7 @@ func decode(r io.Reader) (uint8, []byte, error) {
 		return uint8(0), nil, err
 	}
 
-	// get encoding format e.g compressed
+	// get encoding format e.g. compressed
 	cf := uint8(header[0])
 
 	// get message length

@@ -52,7 +52,7 @@ func WithFilter(fn ...Filter) SelectOption {
 	}
 }
 
-// Strategy sets the selector strategy
+// WithStrategy Strategy sets the selector strategy
 func WithStrategy(fn Strategy) SelectOption {
 	return func(o *SelectOptions) {
 		o.Strategy = fn

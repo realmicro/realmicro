@@ -35,27 +35,27 @@ type Message interface {
 
 // Request is the interface for a synchronous request used by Call or Stream
 type Request interface {
-	// The service to call
+	// Service The service to call
 	Service() string
-	// The action to take
+	// Method The action to take
 	Method() string
-	// The endpoint to invoke
+	// Endpoint The endpoint to invoke
 	Endpoint() string
-	// The content type
+	// ContentType The content type
 	ContentType() string
-	// The unencoded request body
+	// Body The unencoded request body
 	Body() interface{}
-	// Write to the encoded request writer. This is nil before a call is made
+	// Codec Write to the encoded request writer. This is nil before a call is made
 	Codec() codec.Writer
-	// indicates whether the request will be a streaming one rather than unary
+	// Stream indicates whether the request will be a streaming one rather than unary
 	Stream() bool
 }
 
 // Response is the response received from a service
 type Response interface {
-	// Read the response
+	// Codec Read the response
 	Codec() codec.Reader
-	// read the header
+	// Header read the header
 	Header() map[string]string
 	// Read the undecoded response
 	Read() ([]byte, error)
@@ -66,9 +66,9 @@ type Stream interface {
 	Closer
 	// Context for the stream
 	Context() context.Context
-	// The request made
+	// Request The request made
 	Request() Request
-	// The response read
+	// Response The response read
 	Response() Response
 	// Send will encode and send a request
 	Send(interface{}) error
@@ -121,29 +121,29 @@ var (
 	NewClient func(...Option) Client = newRpcClient
 )
 
-// Makes a synchronous call to a service using the default client
+// Call Makes a synchronous call to a service using the default client
 func Call(ctx context.Context, request Request, response interface{}, opts ...CallOption) error {
 	return DefaultClient.Call(ctx, request, response, opts...)
 }
 
-// Publishes a publication using the default client. Using the underlying broker
+// Publish a publication using the default client. Using the underlying broker
 // set within the options.
 func Publish(ctx context.Context, msg Message, opts ...PublishOption) error {
 	return DefaultClient.Publish(ctx, msg, opts...)
 }
 
-// Creates a new message using the default client
+// NewMessage Creates a new message using the default client
 func NewMessage(topic string, payload interface{}, opts ...MessageOption) Message {
 	return DefaultClient.NewMessage(topic, payload, opts...)
 }
 
-// Creates a new request using the default client. Content Type will
+// NewRequest Creates a new request using the default client. Content Type will
 // be set to the default within options and use the appropriate codec
 func NewRequest(service, endpoint string, request interface{}, reqOpts ...RequestOption) Request {
 	return DefaultClient.NewRequest(service, endpoint, request, reqOpts...)
 }
 
-// Creates a streaming connection with a service and returns responses on the
+// NewStream Creates a streaming connection with a service and returns responses on the
 // channel passed in. It's up to the user to close the streamer.
 func NewStream(ctx context.Context, request Request, opts ...CallOption) (Stream, error) {
 	return DefaultClient.Stream(ctx, request, opts...)

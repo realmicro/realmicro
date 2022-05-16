@@ -21,7 +21,7 @@ type Selector interface {
 	Reset(service string)
 	// Close renders the selector unusable
 	Close() error
-	// Name of the selector
+	// String Name of the selector
 	String() string
 }
 
@@ -32,7 +32,7 @@ type Next func() (*registry.Node, error)
 // Filter is used to filter a service during the selection process
 type Filter func([]*registry.Service) []*registry.Service
 
-// Strategy is a selection strategy e.g random, round robin
+// Strategy is a selection strategy e.g. random, round-robin
 type Strategy func([]*registry.Service) Next
 
 var (

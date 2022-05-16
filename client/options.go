@@ -136,7 +136,7 @@ func Codec(contentType string, c codec.NewCodec) Option {
 	}
 }
 
-// Default content type of the client
+// ContentType Default content type of the client
 func ContentType(ct string) Option {
 	return func(o *Options) {
 		o.ContentType = ct
@@ -173,21 +173,21 @@ func Transport(t transport.Transport) Option {
 	}
 }
 
-// Select is used to select a node to route a request to
+// Selector Select is used to select a node to route a request to
 func Selector(s selector.Selector) Option {
 	return func(o *Options) {
 		o.Selector = s
 	}
 }
 
-// Adds a Wrapper to a list of options passed into the client
+// Wrap Adds a Wrapper to a list of options passed into the client
 func Wrap(w Wrapper) Option {
 	return func(o *Options) {
 		o.Wrappers = append(o.Wrappers, w)
 	}
 }
 
-// Adds a Wrapper to the list of CallFunc wrappers
+// WrapCall Adds a Wrapper to the list of CallFunc wrappers
 func WrapCall(cw ...CallWrapper) Option {
 	return func(o *Options) {
 		o.CallOptions.CallWrappers = append(o.CallOptions.CallWrappers, cw...)
@@ -202,7 +202,7 @@ func Backoff(fn BackoffFunc) Option {
 	}
 }
 
-// Number of retries when making the request.
+// Retries Number of retries when making the request.
 // Should this be a Call Option?
 func Retries(i int) Option {
 	return func(o *Options) {
@@ -217,7 +217,7 @@ func Retry(fn RetryFunc) Option {
 	}
 }
 
-// The request timeout.
+// RequestTimeout The request timeout.
 // Should this be a Call Option?
 func RequestTimeout(d time.Duration) Option {
 	return func(o *Options) {
@@ -232,7 +232,7 @@ func StreamTimeout(d time.Duration) Option {
 	}
 }
 
-// Transport dial timeout
+// DialTimeout Transport dial timeout
 func DialTimeout(d time.Duration) Option {
 	return func(o *Options) {
 		o.CallOptions.DialTimeout = d
@@ -331,7 +331,7 @@ func WithServiceToken() CallOption {
 }
 
 // WithCache is a CallOption which sets the duration the response
-// shoull be cached for
+// should be cached for
 func WithCache(c time.Duration) CallOption {
 	return func(o *CallOptions) {
 		o.CacheExpiry = c

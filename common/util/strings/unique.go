@@ -34,19 +34,17 @@ func UniqueId(length int, uid int64) (result int64) {
 func UniqueIdDecode(code string) int64 {
 	res := int64(0)
 	lenCode := len(code)
-	baseArr := []byte(NumberBase) // 字符串进制转换为byte数组
-	baseRev := make(map[byte]int) // 进制数据键值转换为map
+	baseArr := []byte(NumberBase)
+	baseRev := make(map[byte]int)
 	for k, v := range baseArr {
 		baseRev[v] = k
 	}
-	// 查找补位字符的位置
 	isPad := strings.Index(code, NumberPad)
 	if isPad != -1 {
 		lenCode = isPad
 	}
 	r := 0
 	for i := 0; i < lenCode; i++ {
-		// 补充字符直接跳过
 		if string(code[i]) == NumberPad {
 			continue
 		}
@@ -70,7 +68,7 @@ const (
 	PAD     = "A"
 )
 
-// id转code
+// UniqueStrId id to code
 func UniqueStrId(length int, uid int64) string {
 	id := uid
 	mod := int64(0)

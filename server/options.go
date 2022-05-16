@@ -93,14 +93,14 @@ func newOptions(opt ...Option) Options {
 	return opts
 }
 
-// Server name
+// Name Server name
 func Name(n string) Option {
 	return func(o *Options) {
 		o.Name = n
 	}
 }
 
-// Unique server id
+// Id Unique server id
 func Id(id string) Option {
 	return func(o *Options) {
 		o.Id = id
@@ -121,7 +121,7 @@ func Address(a string) Option {
 	}
 }
 
-// The address to advertise for discovery - host:port
+// Advertise The address to advertise for discovery - host:port
 func Advertise(a string) Option {
 	return func(o *Options) {
 		o.Advertise = a
@@ -186,14 +186,14 @@ func RegisterCheck(fn func(context.Context) error) Option {
 	}
 }
 
-// Register the service with a TTL
+// RegisterTTL Register the service with a TTL
 func RegisterTTL(t time.Duration) Option {
 	return func(o *Options) {
 		o.RegisterTTL = t
 	}
 }
 
-// Register the service with at interval
+// RegisterInterval Register the service with at interval
 func RegisterInterval(t time.Duration) Option {
 	return func(o *Options) {
 		o.RegisterInterval = t
@@ -243,14 +243,14 @@ func Wait(wg *sync.WaitGroup) Option {
 	}
 }
 
-// Adds a handler Wrapper to a list of options passed into the server
+// WrapHandler Adds a handler Wrapper to a list of options passed into the server
 func WrapHandler(w HandlerWrapper) Option {
 	return func(o *Options) {
 		o.HdlrWrappers = append(o.HdlrWrappers, w)
 	}
 }
 
-// Adds a subscriber Wrapper to a list of options passed into the server
+// WrapSubscriber Adds a subscriber Wrapper to a list of options passed into the server
 func WrapSubscriber(w SubscriberWrapper) Option {
 	return func(o *Options) {
 		o.SubWrappers = append(o.SubWrappers, w)

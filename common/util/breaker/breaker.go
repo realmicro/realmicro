@@ -36,8 +36,8 @@ type (
 		// If not allow, ErrServiceUnavailable will be returned.
 		Allow() (Promise, error)
 
-		// Do runs the given request if the Breaker accepts it.
-		// Do returns an error instantly if the Breaker rejects the request.
+		// Do run the given request if the Breaker accepts it.
+		// Do return an error instantly if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		Do(req func() error) error

@@ -1,8 +1,8 @@
-// Package log provides a log interface
+// Package logger provides a log interface
 package logger
 
 var (
-	// Default logger
+	// DefaultLogger Default logger
 	DefaultLogger Logger = NewLogger()
 )
 
@@ -10,7 +10,7 @@ var (
 type Logger interface {
 	// Init initialises options
 	Init(options ...Option) error
-	// The Logger options
+	// Options The Logger options
 	Options() Options
 	// Fields set fields to always be logged
 	Fields(fields map[string]interface{}) Logger

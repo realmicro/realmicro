@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// MD5Encrypt 给字符串生成md5，salt interface{} 加密的盐
+// MD5Encrypt string to md5，salt interface{}
 func MD5Encrypt(str string, salt ...interface{}) (CryptStr string) {
 	if l := len(salt); l > 0 {
 		slice := make([]string, l+1)

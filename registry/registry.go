@@ -8,13 +8,13 @@ import (
 var (
 	DefaultRegistry = NewRegistry()
 
-	// Not found error when GetService is called
+	// ErrNotFound Not found error when GetService is called
 	ErrNotFound = errors.New("service not found")
-	// Watcher stopped error when watcher is stopped
+	// ErrWatcherStopped Watcher stopped error when watcher is stopped
 	ErrWatcherStopped = errors.New("watcher stopped")
 )
 
-// The registry provides an interface for service discovery
+// Registry The registry provides an interface for service discovery
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, ...}
 type Registry interface {
@@ -78,12 +78,12 @@ func Deregister(s *Service) error {
 	return DefaultRegistry.Deregister(s)
 }
 
-// Retrieve a service. A slice is returned since we separate Name/Version.
+// GetService Retrieve a service. A slice is returned since we separate Name/Version.
 func GetService(name string) ([]*Service, error) {
 	return DefaultRegistry.GetService(name)
 }
 
-// List the services. Only returns service names
+// ListServices List the services. Only returns service names
 func ListServices() ([]*Service, error) {
 	return DefaultRegistry.ListServices()
 }

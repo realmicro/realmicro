@@ -11,7 +11,7 @@ type Watcher interface {
 }
 
 // Result is returned by a call to Next on
-// the watcher. Actions can be create, update, delete
+// the watcher. Actions can create, update, delete
 type Result struct {
 	Action  string
 	Service *Service
@@ -29,7 +29,7 @@ const (
 	Update
 )
 
-// String returns human readable event type
+// String returns human-readable event type
 func (t EventType) String() string {
 	switch t {
 	case Create:

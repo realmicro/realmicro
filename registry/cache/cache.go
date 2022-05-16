@@ -15,9 +15,9 @@ import (
 
 // Cache is the registry cache interface
 type Cache interface {
-	// embed the registry interface
+	// Registry embed the registry interface
 	registry.Registry
-	// stop the cache watcher
+	// Stop the cache watcher
 	Stop()
 }
 
@@ -40,7 +40,7 @@ type cache struct {
 	// used to hold onto the cache
 	// in failure state
 	status error
-	// used to prevent cache breakdwon
+	// used to prevent cache breakdown
 	sg singleflight.Group
 }
 
@@ -141,7 +141,7 @@ func (c *cache) get(service string) ([]*registry.Service, error) {
 				// return the stale cache
 				return cached, nil
 			}
-			// otherwise return error
+			// otherwise, return error
 			return nil, err
 		}
 
@@ -346,7 +346,7 @@ func (c *cache) run(service string) {
 
 			if a > 3 {
 				if logger.V(logger.DebugLevel, logger.DefaultLogger) {
-					logger.Debug("rcache: ", err, " backing off ", d)
+					logger.Debug("registry cache error: ", err, " backing off ", d)
 				}
 				a = 0
 			}
@@ -371,7 +371,7 @@ func (c *cache) run(service string) {
 
 			if b > 3 {
 				if logger.V(logger.DebugLevel, logger.DefaultLogger) {
-					logger.Debug("rcache: ", err, " backing off ", d)
+					logger.Debug("registry cache error: ", err, " backing off ", d)
 				}
 				b = 0
 			}

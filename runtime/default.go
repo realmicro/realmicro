@@ -187,7 +187,7 @@ func (r *runtime) Init(opts ...Option) error {
 	return nil
 }
 
-// run runs the runtime management loop
+// run the runtime management loop
 func (r *runtime) run(events <-chan Event) {
 	t := time.NewTicker(time.Second * 5)
 	defer t.Stop()
@@ -209,7 +209,7 @@ func (r *runtime) run(events <-chan Event) {
 			logger.Debugf("Runtime updating service %s in %v namespace", name, ns)
 		}
 
-		// this will cause a delete followed by created
+		// this will cause a deleted followed by created
 		if err := r.Update(service.Service, UpdateNamespace(ns)); err != nil {
 			return err
 		}
@@ -391,7 +391,7 @@ func exists(path string) (bool, error) {
 	return true, err
 }
 
-// @todo: Getting existing lines is not supported yet.
+// Logs @todo: Getting existing lines is not supported yet.
 // The reason for this is because it's hard to calculate line offset
 // as opposed to character offset.
 // This logger streams by default and only supports the `StreamCount` option.

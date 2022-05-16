@@ -16,23 +16,23 @@ import (
 
 // Server is a simple micro server abstraction
 type Server interface {
-	// Initialise options
+	// Init Initialise options
 	Init(...Option) error
-	// Retrieve the options
+	// Options Retrieve the options
 	Options() Options
-	// Register a handler
+	// Handle Register a handler
 	Handle(Handler) error
-	// Create a new handler
+	// NewHandler Create a new handler
 	NewHandler(interface{}, ...HandlerOption) Handler
-	// Create a new subscriber
+	// NewSubscriber Create a new subscriber
 	NewSubscriber(string, interface{}, ...SubscriberOption) Subscriber
-	// Register a subscriber
+	// Subscribe Register a subscriber
 	Subscribe(Subscriber) error
 	// Start the server
 	Start() error
 	// Stop the server
 	Stop() error
-	// Server implementation
+	// String Server implementation
 	String() string
 }
 
@@ -48,13 +48,13 @@ type Router interface {
 type Message interface {
 	// Topic of the message
 	Topic() string
-	// The decoded payload value
+	// Payload The decoded payload value
 	Payload() interface{}
-	// The content type of the payload
+	// ContentType The content type of the payload
 	ContentType() string
-	// The raw headers of the message
+	// Header The raw headers of the message
 	Header() map[string]string
-	// The raw body of the message
+	// Body The raw body of the message
 	Body() []byte
 	// Codec used to decode the message
 	Codec() codec.Reader
@@ -64,11 +64,11 @@ type Message interface {
 type Request interface {
 	// Service name requested
 	Service() string
-	// The action requested
+	// Method The action requested
 	Method() string
 	// Endpoint name requested
 	Endpoint() string
-	// Content type provided
+	// ContentType Content type provided
 	ContentType() string
 	// Header of the request
 	Header() map[string]string
@@ -76,19 +76,19 @@ type Request interface {
 	Body() interface{}
 	// Read the undecoded request body
 	Read() ([]byte, error)
-	// The encoded message stream
+	// Codec The encoded message stream
 	Codec() codec.Reader
-	// Indicates whether its a stream
+	// Stream Indicates whether its a stream
 	Stream() bool
 }
 
 // Response is the response writer for unencoded messages
 type Response interface {
-	// Encoded writer
+	// Codec Encoded writer
 	Codec() codec.Writer
-	// Write the header
+	// WriteHeader Write the header
 	WriteHeader(map[string]string)
-	// write a response directly to the client
+	// Write a response directly to the client
 	Write([]byte) error
 }
 

@@ -15,7 +15,7 @@ type Options struct {
 	// by the transport and the entire payload must be encoded
 	Codec codec.Marshaler
 	// Secure tells the transport to secure the connection.
-	// In the case TLSConfig is not specified best effort self-signed
+	// In the case TLSConfig is not specified the best effort self-signed
 	// certs should be used
 	Secure bool
 	// TLSConfig to secure the connection. The assumption is that this
@@ -74,8 +74,8 @@ func Timeout(t time.Duration) Option {
 	}
 }
 
-// Use secure communication. If TLSConfig is not specified we
-// use InsecureSkipVerify and generate a self signed cert
+// Secure Use secure communication. If TLSConfig is not specified we
+// use InsecureSkipVerify and generate a self-signed cert
 func Secure(b bool) Option {
 	return func(o *Options) {
 		o.Secure = b
@@ -89,14 +89,14 @@ func TLSConfig(t *tls.Config) Option {
 	}
 }
 
-// Indicates whether this is a streaming connection
+// WithStream Indicates whether this is a streaming connection
 func WithStream() DialOption {
 	return func(o *DialOptions) {
 		o.Stream = true
 	}
 }
 
-// Timeout used when dialling the remote side
+// WithTimeout Timeout used when dialling the remote side
 func WithTimeout(d time.Duration) DialOption {
 	return func(o *DialOptions) {
 		o.Timeout = d

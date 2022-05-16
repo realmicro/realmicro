@@ -19,7 +19,7 @@ func (Marshaler) Marshal(v interface{}) ([]byte, error) {
 		return nil, codec.ErrInvalidMessage
 	}
 
-	// looks not good, but allows to reuse underlining bytes
+	// looks not good, but allows reusing underlining bytes
 	buf := bufferPool.Get()
 	pbuf := proto.NewBuffer(buf.Bytes())
 	defer func() {

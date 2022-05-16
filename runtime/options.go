@@ -259,7 +259,7 @@ type LogsOptions struct {
 	Context context.Context
 }
 
-// LogsExistingCount confiures how many existing lines to show
+// LogsCount LogsExistingCount configures how many existing lines to show
 func LogsCount(count int64) LogsOption {
 	return func(l *LogsOptions) {
 		l.Count = count

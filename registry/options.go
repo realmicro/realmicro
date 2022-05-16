@@ -64,7 +64,7 @@ func Secure(b bool) Option {
 	}
 }
 
-// Specify TLS Config
+// TLSConfig Specify TLS Config
 func TLSConfig(t *tls.Config) Option {
 	return func(o *Options) {
 		o.TLSConfig = t
@@ -83,7 +83,7 @@ func RegisterContext(ctx context.Context) RegisterOption {
 	}
 }
 
-// Watch a service
+// WatchService Watch a service
 func WatchService(name string) WatchOption {
 	return func(o *WatchOptions) {
 		o.Service = name

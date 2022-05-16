@@ -1,4 +1,3 @@
-// Package mdns is a multicast dns registry
 package registry
 
 import (
@@ -19,6 +18,8 @@ import (
 	"github.com/realmicro/realmicro/common/util/mdns"
 	"github.com/realmicro/realmicro/logger"
 )
+
+// mdns is a multicast dns registry
 
 var (
 	// use a .micro domain rather than .local

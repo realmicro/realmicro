@@ -542,7 +542,7 @@ func (router *router) ProcessMessage(ctx context.Context, msg Message) (err erro
 				isVal = true
 			}
 
-			// if its a value get the element
+			// if it's a value get the element
 			if isVal {
 				req = req.Elem()
 			}

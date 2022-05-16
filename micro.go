@@ -11,10 +11,10 @@ import (
 type serviceKey struct{}
 
 // Service is an interface that wraps the lower level libraries
-// within go-micro. Its a convenience method for building
+// within realmicro. It's a convenience method for building
 // and initialising services.
 type Service interface {
-	// The service name
+	// Name The service name
 	Name() string
 	// Init initialises options
 	Init(...Option)
@@ -26,13 +26,13 @@ type Service interface {
 	Server() server.Server
 	// Run the service
 	Run() error
-	// The service implementation
+	// String The service implementation
 	String() string
 }
 
 // Function is a one time executing Service
 type Function interface {
-	// Inherits Service interface
+	// Service Inherits Service interface
 	Service
 	// Done signals to complete execution
 	Done() error
@@ -48,7 +48,7 @@ type Event interface {
 	Publish(ctx context.Context, msg interface{}, opts ...client.PublishOption) error
 }
 
-// Type alias to satisfy the deprecation
+// Publisher Type alias to satisfy the deprecation
 type Publisher = Event
 
 type Option func(*Options)

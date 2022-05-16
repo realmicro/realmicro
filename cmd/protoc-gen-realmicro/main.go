@@ -37,7 +37,7 @@
 // protocol compiler, so once the protocol compiler (protoc) is installed
 // you can run
 // 	protoc --micro_out=output_directory --go_out=output_directory input_directory/file.proto
-// to generate go-micro code for the protocol defined by file.proto.
+// to generate realmicro code for the protocol defined by file.proto.
 // With that input, the output will be written to
 // 	output_directory/file.micro.go
 //

@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	// Default buffer size if any
+	// DefaultSize default buffer size if any
 	DefaultSize = 1024
 	// DefaultLog logger
 	DefaultLog = NewLog()
-	// Default formatter
+	// DefaultFormat default formatter
 	DefaultFormat = TextFormat
 )
 
@@ -42,7 +42,7 @@ type Stream interface {
 	Stop() error
 }
 
-// Format is a function which formats the output
+// FormatFunc is a function which formats the output
 type FormatFunc func(Record) string
 
 // TextFormat returns text format

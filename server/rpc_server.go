@@ -300,7 +300,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// no legacy codec needed
 		if cf == nil {
 			var err error
-			// try get a new codec
+			// try to get a new codec
 			if cf, err = s.newCodec(ct); err != nil {
 				// no codec found so send back an error
 				if err := sock.Send(&transport.Message{
@@ -465,7 +465,7 @@ func (s *rpcServer) Init(opts ...Option) error {
 	for _, opt := range opts {
 		opt(&s.opts)
 	}
-	// update router if its the default
+	// update router if it's the default
 	if s.opts.Router == nil {
 		r := newRpcRouter()
 		r.hdlrWrappers = s.opts.HdlrWrappers
@@ -683,7 +683,7 @@ func (s *rpcServer) Register() error {
 		s.subscriber = sub
 	}
 
-	// subscribe for all of the subscribers
+	// subscribe for all the subscribers
 	for sb := range s.subscribers {
 		var opts []broker.SubscribeOption
 		if queue := sb.Options().Queue; len(queue) > 0 {
