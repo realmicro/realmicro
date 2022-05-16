@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/realmicro/realmicro/common/util/json"
 	util "github.com/realmicro/realmicro/common/util/registry"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/registry"
@@ -194,6 +195,10 @@ func (c *cache) set(service string, services []*registry.Service) {
 func (c *cache) update(res *registry.Result) {
 	if res == nil || res.Service == nil {
 		return
+	}
+
+	if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+		logger.Debug("[Registry Cache] update: ", res.Action, ", Service: ", res.Service.Name, ", Nodes: ", json.Marshal(res.Service.Nodes))
 	}
 
 	c.Lock()
@@ -437,7 +442,7 @@ func (c *cache) GetService(service string, opts ...registry.GetOption) ([]*regis
 	if logger.V(logger.DebugLevel, logger.DefaultLogger) {
 		logger.Debug("[Registry Cache] GetService from service: ", service, ", Result services: ", len(services))
 		for _, s := range services {
-			logger.Debug("[Registry Cache] GetService from service: ", service, ", Result Name: ", s.Name, ", Metadata: ", s.Metadata, ", Nodes: ", s.Nodes)
+			logger.Debug("[Registry Cache] GetService from service: ", service, ", Result Name: ", s.Name, ", Nodes: ", json.Marshal(s.Nodes))
 		}
 	}
 
