@@ -121,6 +121,9 @@ func (c *cache) get(service string) ([]*registry.Service, error) {
 	// got services && within ttl so return cache
 	if c.isValid(cp, ttl) {
 		c.RUnlock()
+		if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+			logger.Debug("[Registry Cache] get from cache: ", service, ", Result services: ", len(cp))
+		}
 		// return services
 		return cp, nil
 	}
@@ -429,6 +432,13 @@ func (c *cache) GetService(service string, opts ...registry.GetOption) ([]*regis
 	services, err := c.get(service)
 	if err != nil {
 		return nil, err
+	}
+
+	if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+		logger.Debug("[Registry Cache] GetService from service: ", service, ", Result services: ", len(services))
+		for _, s := range services {
+			logger.Debug("[Registry Cache] GetService from service: ", service, ", Result Name: ", s.Name, ", Metadata: ", s.Metadata, ", Nodes: ", s.Nodes)
+		}
 	}
 
 	// if there's nothing return err

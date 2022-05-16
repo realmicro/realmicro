@@ -68,7 +68,7 @@ type GetOption func(*GetOptions)
 
 type ListOption func(*ListOptions)
 
-// Register a service node. Additionally supply options such as TTL.
+// Register a service node. Additionally, supply options such as TTL.
 func Register(s *Service, opts ...RegisterOption) error {
 	return DefaultRegistry.Register(s, opts...)
 }

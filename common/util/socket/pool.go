@@ -22,7 +22,7 @@ func (p *Pool) Get(id string) (*Socket, bool) {
 	// save socket
 	p.Lock()
 	defer p.Unlock()
-	// double checked locking
+	// double-checked locking
 	socket, ok = p.pool[id]
 	if ok {
 		return socket, ok

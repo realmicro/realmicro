@@ -252,7 +252,7 @@ func newClient() (*client, error) {
 	return c, nil
 }
 
-// Close is used to cleanup the client
+// Close is used to clean up the client
 func (c *client) Close() error {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()

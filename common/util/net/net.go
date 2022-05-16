@@ -25,7 +25,7 @@ func HostPort(addr string, port interface{}) string {
 	return fmt.Sprintf("%s:%v", host, port)
 }
 
-// Listen takes addr:portmin-portmax and binds to the first available port
+// Listen takes addr:port min-port max and binds to the first available port
 // Example: Listen("localhost:5000-6000", fn)
 func Listen(addr string, fn func(string) (net.Listener, error)) (net.Listener, error) {
 

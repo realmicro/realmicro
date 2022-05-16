@@ -12,17 +12,17 @@ const (
 	Day    = 86400
 )
 
-// Now: 获取当前时间
+// Now get time
 func Now() int64 {
 	return time.Now().Unix()
 }
 
-// NowMinute: 获取当前分钟
+// NowMinute get now minute
 func NowMinute() int64 {
 	return int64(time.Now().Minute())
 }
 
-// Week: 获取当前是第几周
+// Week get now week
 func Week(tm int64) int64 {
 	if tm == 0 {
 		_, week := time.Now().ISOWeek()
@@ -34,7 +34,7 @@ func Week(tm int64) int64 {
 	}
 }
 
-// Weekday: 获取星期几
+// Weekday get weekday
 func Weekday(tm int64) int64 {
 	if tm == 0 {
 		return int64(time.Now().Weekday())
@@ -44,12 +44,12 @@ func Weekday(tm int64) int64 {
 	}
 }
 
-// Today: 获取今天日期字符串
+// Today get str
 func Today() string {
 	return time.Now().Format("2006-01-02")
 }
 
-// TodayTime: 获取当前时间字符串
+// TodayTime get time str
 func TodayTime() string {
 	return time.Now().Format("2006-01-02 15:04:05")
 }
@@ -98,28 +98,28 @@ func DateEndTimestamp(date string) (timestamp int64) {
 	return now.With(t).EndOfDay().Unix()
 }
 
-// t: timestamp
+// DayBeginTimestamp t: timestamp
 // get begin timestamp of day DayBeginTimestamp
 func DayBeginTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
 	return now.With(t).BeginningOfDay().Unix()
 }
 
-// t: timestamp
+// DayEndTimestamp t: timestamp
 // get end timestamp of day DayEndTimestamp
 func DayEndTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
 	return now.With(t).EndOfDay().Unix()
 }
 
-// t: timestamp
+// WeekBeginTimestamp t: timestamp
 // get begin timestamp of week WeekBeginTimestamp
 func WeekBeginTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
 	return now.With(t).BeginningOfWeek().Unix()
 }
 
-// t: timestamp
+// WeekEndTimestamp t: timestamp
 // get end timestamp of week WeekEndTimestamp
 func WeekEndTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
@@ -131,14 +131,14 @@ func LastMonthBeginTimestamp() (timestamp int64) {
 	return time.Date(year, month, 1, 0, 0, 0, 0, time.Local).AddDate(0, -1, 0).Unix()
 }
 
-// t: timestamp
+// MonthBeginTimestamp t: timestamp
 // get begin timestamp of month MonthBeginTimestamp
 func MonthBeginTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
 	return now.With(t).BeginningOfMonth().Unix()
 }
 
-// t: timestamp
+// MonthEndTimestamp t: timestamp
 // get end timestamp of month MonthEndTimestamp
 func MonthEndTimestamp(tm int64) (timestamp int64) {
 	t := time.Unix(tm, 0)
