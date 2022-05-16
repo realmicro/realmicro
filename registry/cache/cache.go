@@ -123,7 +123,8 @@ func (c *cache) get(service string) ([]*registry.Service, error) {
 	if c.isValid(cp, ttl) {
 		c.RUnlock()
 		if logger.V(logger.DebugLevel, logger.DefaultLogger) {
-			logger.Debug("[Registry Cache] get from cache: ", service, ", Result services: ", len(cp))
+			logger.Debug("[Registry Cache] get from cache: ", service,
+				", Result services: ", len(cp))
 		}
 		// return services
 		return cp, nil
@@ -136,6 +137,15 @@ func (c *cache) get(service string) ([]*registry.Service, error) {
 			return c.Registry.GetService(service)
 		})
 		services, _ := val.([]*registry.Service)
+		if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+			logger.Debug("[Registry Cache] get from registry: ", service,
+				", Result services: ", len(services))
+			if len(services) > 0 {
+				logger.Debug("[Registry Cache] get from registry: ", service,
+					", Result services: ", len(services),
+					", Nodes: ", json.Marshal(services[0].Nodes))
+			}
+		}
 		if err != nil {
 			// check the cache
 			if len(cached) > 0 {
