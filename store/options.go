@@ -42,21 +42,21 @@ func Database(db string) Option {
 	}
 }
 
-// Table is analagous to a table in database backends or a key prefix in KV backends
+// Table is a table in database backends or a key prefix in KV backends
 func Table(t string) Option {
 	return func(o *Options) {
 		o.Table = t
 	}
 }
 
-// WithContext sets the stores context, for any extra configuration
+// WithContext sets the store's context, for any extra configuration
 func WithContext(c context.Context) Option {
 	return func(o *Options) {
 		o.Context = c
 	}
 }
 
-// WithClient sets the stores client to use for RPC
+// WithClient sets the store's client to use for RPC
 func WithClient(c client.Client) Option {
 	return func(o *Options) {
 		o.Client = c
