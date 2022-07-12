@@ -15,6 +15,7 @@ func NewCache(opts ...cache.Option) cache.Cache {
 	if len(options.Address) > 0 {
 		addr = options.Address
 	}
+	// example: redis://user:password@127.0.0.1:6379/3?dial_timeout=3&read_timeout=6s&max_retries=2
 	redisOptions, err := redis.ParseURL(addr)
 	if err != nil {
 		redisOptions = &redis.Options{

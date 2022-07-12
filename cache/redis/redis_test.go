@@ -11,7 +11,7 @@ import (
 
 var (
 	ctx              = context.TODO()
-	key  string      = "redistestkey"
+	key  string      = "redis_test_key"
 	val  interface{} = "hello realmicro"
 	addr             = cache.WithAddress("redis://127.0.0.1:6379")
 )

@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	DefaultPath = "mbroker:"
+	DefaultPath    = "mbroker"
+	DefaultService = "realmicro"
 )
 
 // publication is an internal publication for the Redis broker.
@@ -38,7 +39,7 @@ func (p *publication) Message() *broker.Message {
 	return p.message
 }
 
-// Ack sends an acknowledgement to the broker. However this is not supported
+// Ack sends an acknowledgement to the broker. However, this is not supported
 // is Redis and therefore this is a no-op.
 func (p *publication) Ack() error {
 	return nil
@@ -76,6 +77,8 @@ type asynqBroker struct {
 	bOpts  *brokerOptions
 	client *asynq.Client
 	server *asynq.Server
+
+	defaultPath string
 
 	sync.RWMutex
 	subscribers map[string]map[string]*subscriber
@@ -174,7 +177,11 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 		}
 	}
 
-	typename := fmt.Sprintf("%s%s:%s", DefaultPath, topic, pOpts.Opr)
+	defaultPath := b.defaultPath
+	if len(pOpts.Service) > 0 {
+		defaultPath = buildPath(pOpts.Service)
+	}
+	typename := fmt.Sprintf("%s%s:%s", defaultPath, topic, pOpts.Opr)
 	task := asynq.NewTask(typename, v)
 	var taskOpts []asynq.Option
 	if len(pOpts.Queue) > 0 {
@@ -267,7 +274,7 @@ func (b *asynqBroker) startServer() error {
 	}
 
 	mux := asynq.NewServeMux()
-	mux.Handle(DefaultPath, asynq.HandlerFunc(b.processTask))
+	mux.Handle(b.defaultPath, asynq.HandlerFunc(b.processTask))
 
 	go func() {
 		if err := b.server.Run(mux); err != nil {
@@ -340,8 +347,13 @@ func (b *asynqBroker) processTask(ctx context.Context, t *asynq.Task) error {
 	return nil
 }
 
+func buildPath(service string) string {
+	return DefaultPath + "-" + service + ":"
+}
+
 func NewBroker(opts ...broker.Option) broker.Broker {
 	bOpts := &brokerOptions{
+		service:  DefaultService,
 		nodeType: NodeType,
 		db:       DefaultDB,
 	}
@@ -359,5 +371,6 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 		opts:        options,
 		bOpts:       bOpts,
 		subscribers: make(map[string]map[string]*subscriber),
+		defaultPath: buildPath(bOpts.service),
 	}
 }

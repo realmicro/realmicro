@@ -38,6 +38,7 @@ func TestBroker(t *testing.T) {
 			"default":  3,
 			"low":      1,
 		}),
+		Service("test"),
 	)
 	// Only setting options.
 	b.Init()
@@ -52,21 +53,21 @@ func TestBroker(t *testing.T) {
 	go func() {
 		s0 := subscribe(t, b, "test0", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println("[s0] Received message:", event.Topic(), string(m.Body))
+			fmt.Println("[b1-s0] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		})
 
 		s1 := subscribe(t, b, "test", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println("[s1] Received message:", event.Topic(), string(m.Body))
+			fmt.Println("[b1-s1] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, SubOpr("opr1"))
 
 		s2 := subscribe(t, b, "test", func(event broker.Event) error {
 			m := event.Message()
-			fmt.Println("[s2] Received message:", event.Topic(), string(m.Body))
+			fmt.Println("[b1-s2] Received message:", event.Topic(), string(m.Body))
 			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, SubOpr("opr2"))
@@ -81,7 +82,7 @@ func TestBroker(t *testing.T) {
 
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("world"),
-		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
+		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second), PubService("test"))
 
 		time.Sleep(10 * time.Second)
 

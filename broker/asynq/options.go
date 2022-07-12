@@ -27,11 +27,20 @@ var (
 )
 
 type brokerOptions struct {
+	service  string
 	nodeType string
 	pass     string
 	db       int
 	tls      bool
 	queues   map[string]int
+}
+
+// Service customizes the given service name
+func Service(service string) broker.Option {
+	return func(o *broker.Options) {
+		bo := o.Context.Value(optionsKey).(*brokerOptions)
+		bo.service = service
+	}
 }
 
 // Cluster customizes the given Redis as a cluster
@@ -75,6 +84,7 @@ func Queues(queues map[string]int) broker.Option {
 }
 
 type publishOptions struct {
+	Service   string
 	Queue     string
 	Opr       string
 	ProcessIn time.Duration
@@ -91,6 +101,14 @@ func getPublishOptions(o *broker.PublishOptions) *publishOptions {
 		po := &publishOptions{}
 		o.Context = context.WithValue(o.Context, publishKey, po)
 		return po
+	}
+}
+
+// PubService publish with service name
+func PubService(service string) broker.PublishOption {
+	return func(o *broker.PublishOptions) {
+		po := getPublishOptions(o)
+		po.Service = service
 	}
 }
 
