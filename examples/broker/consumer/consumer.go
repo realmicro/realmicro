@@ -39,9 +39,7 @@ func main() {
 	broker.DefaultBroker = asynq.NewBroker(
 		asynq.DB(1),
 		asynq.Queues(map[string]int{
-			"critical": 6,
-			"default":  3,
-			"low":      1,
+			"default": 1,
 		}),
 		asynq.Service("test"),
 	)
@@ -57,5 +55,5 @@ func main() {
 
 	sub()
 
-	<-time.After(time.Minute * 10)
+	<-time.After(time.Minute * 3)
 }

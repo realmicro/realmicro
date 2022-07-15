@@ -82,7 +82,7 @@ func TestBroker(t *testing.T) {
 
 		publish(t, b, "test", &broker.Message{
 			Body: []byte("world"),
-		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second), PubService("test"))
+		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
 
 		time.Sleep(10 * time.Second)
 
