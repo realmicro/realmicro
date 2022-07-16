@@ -39,11 +39,6 @@ func pub() {
 func main() {
 	broker.DefaultBroker = asynq.NewBroker(
 		asynq.DB(1),
-		asynq.Queues(map[string]int{
-			"critical": 6,
-			"default":  3,
-			"low":      1,
-		}),
 		asynq.Service("test"),
 	)
 
