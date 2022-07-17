@@ -13,6 +13,10 @@ type Broker interface {
 	String() string
 }
 
+type Inspector interface {
+	DeleteTask(queue, id string) error
+}
+
 // Handler is used to process messages via a subscription of a topic.
 // The handler is passed a publication interface which contains the
 // message and optional Ack method to acknowledge receipt of the message.
@@ -21,6 +25,7 @@ type Handler func(Event) error
 type Message struct {
 	Header map[string]string
 	Body   []byte
+	MsgId  string
 }
 
 // Event is given to a subscription handler for processing

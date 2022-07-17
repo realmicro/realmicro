@@ -20,6 +20,8 @@ type Options struct {
 	TLSConfig *tls.Config
 	// Registry used for clustering
 	Registry registry.Registry
+	// Inspector used for task opr
+	Inspector Inspector
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context

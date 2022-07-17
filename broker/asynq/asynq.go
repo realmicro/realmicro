@@ -17,7 +17,7 @@ var (
 	DefaultPath = "mbroker:"
 )
 
-// publication is an internal publication for the Redis broker.
+// publication is an internal publication for the Asynq broker.
 type publication struct {
 	topic   string
 	opr     string
@@ -39,7 +39,7 @@ func (p *publication) Message() *broker.Message {
 }
 
 // Ack sends an acknowledgement to the broker. However, this is not supported
-// is Redis and therefore this is a no-op.
+// in Asynq and therefore this is a no-op.
 func (p *publication) Ack() error {
 	return nil
 }
@@ -72,10 +72,11 @@ func (s *subscriber) Unsubscribe() error {
 }
 
 type asynqBroker struct {
-	opts   broker.Options
-	bOpts  *brokerOptions
-	client *asynq.Client
-	server *asynq.Server
+	opts      broker.Options
+	bOpts     *brokerOptions
+	client    *asynq.Client
+	server    *asynq.Server
+	inspector *asynq.Inspector
 
 	sync.RWMutex
 	subscribers map[string]map[string]*subscriber
@@ -130,6 +131,7 @@ func (b *asynqBroker) Connect() error {
 		}
 		// redis node mode
 		b.client = asynq.NewClient(redisOpt)
+		b.inspector = asynq.NewInspector(redisOpt)
 	} else {
 		redisOpt := &asynq.RedisClusterClientOpt{
 			Addrs:     b.opts.Addrs,
@@ -138,7 +140,9 @@ func (b *asynqBroker) Connect() error {
 		}
 		// redis cluster node
 		b.client = asynq.NewClient(redisOpt)
+		b.inspector = asynq.NewInspector(redisOpt)
 	}
+	b.opts.Inspector = b
 
 	return nil
 }
@@ -153,6 +157,8 @@ func (b *asynqBroker) Disconnect() error {
 		b.server.Shutdown()
 		b.server = nil
 	}
+	err = b.inspector.Close()
+	b.inspector = nil
 	return err
 }
 
@@ -190,6 +196,7 @@ func (b *asynqBroker) Publish(topic string, m *broker.Message, opts ...broker.Pu
 	if err != nil {
 		return err
 	}
+	m.MsgId = info.ID
 	if logger.V(logger.TraceLevel, logger.DefaultLogger) {
 		logger.Tracef("Asynq Broker Publish task result: %+v", info)
 	}
@@ -225,6 +232,16 @@ func (b *asynqBroker) Subscribe(topic string, h broker.Handler, opts ...broker.S
 
 	// return the subscriber
 	return s, nil
+}
+
+func (b *asynqBroker) DeleteTask(queue, id string) error {
+	if b.inspector != nil {
+		if logger.V(logger.TraceLevel, logger.DefaultLogger) {
+			logger.Tracef("Asynq Broker DeleteTask: %s, %s", queue, id)
+		}
+		return b.inspector.DeleteTask(queue, id)
+	}
+	return nil
 }
 
 func (b *asynqBroker) startServer() error {

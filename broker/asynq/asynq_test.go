@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/realmicro/realmicro/broker"
+	"github.com/realmicro/realmicro/logger"
 )
 
 func subscribe(t *testing.T, b broker.Broker, topic string, handle broker.Handler, opts ...broker.SubscribeOption) broker.Subscriber {
@@ -31,6 +32,8 @@ func unsubscribe(t *testing.T, s broker.Subscriber) {
 }
 
 func TestBroker(t *testing.T) {
+	logger.Init(logger.WithLevel(logger.TraceLevel))
+
 	b := NewBroker(
 		DB(1),
 		Queues(map[string]int{
@@ -72,17 +75,26 @@ func TestBroker(t *testing.T) {
 			return nil
 		}, SubOpr("opr2"))
 
-		publish(t, b, "test0", &broker.Message{
+		m0 := &broker.Message{
 			Body: []byte("empty"),
-		})
+		}
+		publish(t, b, "test0", m0)
+		fmt.Println("m0 msg id:", m0.MsgId)
 
-		publish(t, b, "test", &broker.Message{
+		m1 := &broker.Message{
 			Body: []byte("hello"),
-		}, PubOpr("opr1"))
+		}
+		publish(t, b, "test", m1, PubOpr("opr1"))
+		fmt.Println("m1 msg id:", m1.MsgId)
 
-		publish(t, b, "test", &broker.Message{
+		m2 := &broker.Message{
 			Body: []byte("world"),
-		}, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
+		}
+		publish(t, b, "test", m2, PubOpr("opr2"), Queue("critical"), ProcessIn(3*time.Second))
+		fmt.Println("m2 msg id:", m2.MsgId)
+		if b.Options().Inspector != nil {
+			b.Options().Inspector.DeleteTask("critical", m2.MsgId)
+		}
 
 		time.Sleep(10 * time.Second)
 
@@ -101,7 +113,7 @@ func TestBroker(t *testing.T) {
 	exp := []string{
 		"test0:empty",
 		"test:opr1:hello",
-		"test:opr2:world",
+		//"test:opr2:world",
 	}
 
 	fmt.Println(actual)
