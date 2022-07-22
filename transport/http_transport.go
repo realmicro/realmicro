@@ -135,18 +135,17 @@ func (h *httpTransportClient) Recv(m *Message) error {
 		r = rc
 	}
 
-	// set timeout if its greater than 0
+	// set timeout if it's greater than 0
 	if h.ht.opts.Timeout > time.Duration(0) {
 		h.conn.SetDeadline(time.Now().Add(h.ht.opts.Timeout))
 	}
 
 	h.Lock()
+	defer h.Unlock()
 	if h.closed {
-		h.Unlock()
 		return io.EOF
 	}
 	rsp, err := http.ReadResponse(h.buff, r)
-	h.Unlock()
 	if err != nil {
 		return err
 	}
@@ -207,7 +206,7 @@ func (h *httpTransportSocket) Recv(m *Message) error {
 
 	// process http 1
 	if h.r.ProtoMajor == 1 {
-		// set timeout if its greater than 0
+		// set timeout if it's greater than 0
 		if h.ht.opts.Timeout > time.Duration(0) {
 			h.conn.SetDeadline(time.Now().Add(h.ht.opts.Timeout))
 		}
@@ -245,7 +244,7 @@ func (h *httpTransportSocket) Recv(m *Message) error {
 			}
 		}
 
-		// return early early
+		// return early
 		return nil
 	}
 
@@ -443,7 +442,7 @@ func (h *httpTransportListener) Accept(fn func(Socket)) error {
 		ch := make(chan *http.Request, 1)
 		ch <- r
 
-		// create a new transport socket
+		// create new transport socket
 		sock := &httpTransportSocket{
 			ht:     h.ht,
 			w:      w,
