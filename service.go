@@ -8,10 +8,6 @@ import (
 
 	"github.com/realmicro/realmicro/client"
 	msignal "github.com/realmicro/realmicro/common/util/signal"
-	"github.com/realmicro/realmicro/common/util/wrapper"
-	"github.com/realmicro/realmicro/debug/handler"
-	"github.com/realmicro/realmicro/debug/stats"
-	"github.com/realmicro/realmicro/debug/trace"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/server"
 )
@@ -23,29 +19,9 @@ type service struct {
 }
 
 func newService(opts ...Option) Service {
-	service := new(service)
-	options := newOptions(opts...)
-
-	// service name
-	serviceName := options.Server.Options().Name
-
-	// wrap client to inject From-Service header on any calls
-	options.Client = wrapper.FromService(serviceName, options.Client)
-	options.Client = wrapper.TraceCall(serviceName, trace.DefaultTracer, options.Client)
-
-	// wrap the server to provide handler stats
-	err := options.Server.Init(
-		server.WrapHandler(wrapper.HandlerStats(stats.DefaultStats)),
-		server.WrapHandler(wrapper.TraceHandler(trace.DefaultTracer)),
-	)
-	if err != nil {
-		logger.Fatal(err)
+	return &service{
+		opts: newOptions(opts...),
 	}
-
-	// set opts
-	service.opts = options
-
-	return service
 }
 
 func (s *service) Name() string {
@@ -171,14 +147,6 @@ func (s *service) Run() (err error) {
 			os.Exit(0)
 		}
 	}
-
-	// register the debug handler
-	s.opts.Server.Handle(
-		s.opts.Server.NewHandler(
-			handler.NewHandler(s.opts.Client),
-			server.InternalHandler(true),
-		),
-	)
 
 	// start the profiler
 	if s.opts.Profile != nil {
