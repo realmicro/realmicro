@@ -1,12 +1,14 @@
-package dc
+package wrapper
 
 import (
 	"context"
 
 	"github.com/realmicro/realmicro/client"
+	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/selector"
+	"github.com/sirupsen/logrus"
 )
 
 type dcWrapper struct {
@@ -20,10 +22,16 @@ func (dc *dcWrapper) Call(ctx context.Context, req client.Request, rsp interface
 		env = "prod"
 	}
 
-	nOpts := append(opts, client.WithSelectOption(selector.WithFilter(func(services []*registry.Service) []*registry.Service {
-		for _, service := range services {
+	nOpts := append(opts, client.WithSelectOption(selector.WithFilter(func(old []*registry.Service) []*registry.Service {
+		var services []*registry.Service
+
+		for _, service := range old {
+			serv := new(registry.Service)
 			var nodes []*registry.Node
 			for _, node := range service.Nodes {
+				if node.Metadata == nil {
+					continue
+				}
 				nodeEnv := node.Metadata["env"]
 				if len(nodeEnv) == 0 {
 					nodeEnv = "prod"
@@ -32,7 +40,34 @@ func (dc *dcWrapper) Call(ctx context.Context, req client.Request, rsp interface
 					nodes = append(nodes, node)
 				}
 			}
-			service.Nodes = nodes
+			if len(nodes) == 0 {
+				ss, err := registry.GetService(service.Name)
+				if err != nil {
+					logger.Fields(logrus.Fields{
+						"Wrapper":       "DcFilter",
+						"GetServiceErr": err,
+					}).Log(logger.ErrorLevel, "ServiceNodeNoneAvailable")
+				} else {
+					for _, s := range ss {
+						logger.Fields(logrus.Fields{
+							"Wrapper":        "DcFilter",
+							"ServiceName":    s.Name,
+							"ServiceVersion": s.Version,
+							"ServiceNodes":   s.Nodes,
+						}).Log(logger.ErrorLevel, "ServiceNodeNoneAvailable")
+					}
+				}
+				logger.Fields(logrus.Fields{
+					"Wrapper":      "DcFilter",
+					"Env":          env,
+					"Metadata":     md,
+					"ServiceNodes": service.Nodes,
+				}).Log(logger.ErrorLevel, "ServiceNodeNoneAvailable")
+			}
+			// copy
+			*serv = *service
+			serv.Nodes = nodes
+			services = append(services, serv)
 		}
 		return services
 	})))
