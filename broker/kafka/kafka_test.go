@@ -40,10 +40,14 @@ func TestBroker(t *testing.T) {
 	clusterConfig := sarama.NewConfig()
 	//clusterConfig.Version = sarama.V1_1_1_0
 
+	errors := make(chan *sarama.ProducerError, 10)
+	successes := make(chan *sarama.ProducerMessage, 10)
+
 	b := NewBroker(
 		broker.Addrs("127.0.0.1:9092"),
 		BrokerConfig(kc),
 		ClusterConfig(clusterConfig),
+		AsyncProducer(errors, successes),
 	)
 
 	// Only setting options.
@@ -60,6 +64,18 @@ func TestBroker(t *testing.T) {
 
 	topic := "realmicro-test"
 	consumerGroup := "realmicro-test"
+
+	go func() {
+		for {
+			select {
+			case pe := <-errors:
+				t.Fatal(pe.Error())
+				return
+			case pm := <-successes:
+				fmt.Println("ProducerMessage:", pm.Metadata)
+			}
+		}
+	}()
 
 	go func() {
 		fmt.Println("start subscribe")
