@@ -75,13 +75,11 @@ func TestBroker(t *testing.T) {
 			Body: []byte("hello"),
 		}
 		publish(t, b, topic, m0)
-		fmt.Println("m0 msg id:", m0.MsgId)
 
 		m1 := &broker.Message{
 			Body: []byte("world"),
 		}
 		publish(t, b, topic, m1)
-		fmt.Println("m1 msg id:", m1.MsgId)
 
 		time.Sleep(10 * time.Second)
 
