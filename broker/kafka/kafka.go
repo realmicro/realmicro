@@ -4,6 +4,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -128,6 +129,7 @@ func (k *kBroker) Connect() error {
 	// else use sync produce
 	// only keep one client resource, is c variable
 	if errChan != nil {
+		fmt.Println("NewAsyncProducerFromClient")
 		ap, err = sarama.NewAsyncProducerFromClient(c)
 		if err != nil {
 			return err
@@ -143,6 +145,7 @@ func (k *kBroker) Connect() error {
 		if successChan != nil {
 			go func() {
 				for v := range ap.Successes() {
+					fmt.Println("successChan", v.Metadata, v.Value, v.Partition, v.Offset)
 					successChan <- v
 				}
 			}()
