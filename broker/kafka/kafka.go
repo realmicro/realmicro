@@ -4,6 +4,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -135,14 +136,18 @@ func (k *kBroker) Connect() error {
 		// When the ap closed, the Errors() & Successes() channel will be closed
 		// So the goroutine will auto exit
 		go func() {
+			fmt.Println("ERRORS")
 			for v := range ap.Errors() {
+				fmt.Println("ERRORS", v.Error())
 				errChan <- v
 			}
 		}()
 
 		if successChan != nil {
+			fmt.Println("SUCCESS CHAN")
 			go func() {
 				for v := range ap.Successes() {
+					fmt.Println("SUCCESS CHAN:", v.Value, v.Topic, v.Partition)
 					successChan <- v
 				}
 			}()
