@@ -257,11 +257,13 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	for _, o := range opts {
 		o(&opt)
 	}
+	fmt.Println("111")
 	// we need to create a new client per consumer
 	cg, err := k.getSaramaConsumerGroup(opt.Queue)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("222")
 	h := &consumerGroupHandler{
 		handler: handler,
 		subopts: opt,
@@ -270,6 +272,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	}
 	ctx := context.Background()
 	topics := []string{topic}
+	fmt.Println("333")
 	go func() {
 		for {
 			select {
@@ -290,6 +293,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			}
 		}
 	}()
+	fmt.Println("444")
 	return &subscriber{k: k, cg: cg, opts: opt, t: topic}, nil
 }
 
