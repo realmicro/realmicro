@@ -4,6 +4,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -114,6 +115,7 @@ func (k *kBroker) Connect() error {
 
 	c, err := sarama.NewClient(k.addrs, pconfig)
 	if err != nil {
+		fmt.Println("NewClient", err)
 		return err
 	}
 
@@ -130,6 +132,7 @@ func (k *kBroker) Connect() error {
 	if errChan != nil {
 		ap, err = sarama.NewAsyncProducerFromClient(c)
 		if err != nil {
+			fmt.Println("NewAsyncProducerFromClient", err)
 			return err
 		}
 		// When the ap closed, the Errors() & Successes() channel will be closed
@@ -150,6 +153,7 @@ func (k *kBroker) Connect() error {
 	} else {
 		p, err = sarama.NewSyncProducerFromClient(c)
 		if err != nil {
+			fmt.Println("NewSyncProducerFromClient", err)
 			return err
 		}
 	}

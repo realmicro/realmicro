@@ -7,9 +7,9 @@ import (
 	"github.com/realmicro/realmicro/server"
 )
 
-// setSubscribeOption returns a function to setup a context with given value.
-func setSubscribeOption(k, v interface{}) broker.SubscribeOption {
-	return func(o *broker.SubscribeOptions) {
+// setBrokerOption returns a function to setup a context with given value.
+func setBrokerOption(k, v interface{}) broker.Option {
+	return func(o *broker.Options) {
 		if o.Context == nil {
 			o.Context = context.Background()
 		}
@@ -17,9 +17,9 @@ func setSubscribeOption(k, v interface{}) broker.SubscribeOption {
 	}
 }
 
-// setBrokerOption returns a function to setup a context with given value.
-func setBrokerOption(k, v interface{}) broker.Option {
-	return func(o *broker.Options) {
+// setSubscribeOption returns a function to setup a context with given value.
+func setSubscribeOption(k, v interface{}) broker.SubscribeOption {
+	return func(o *broker.SubscribeOptions) {
 		if o.Context == nil {
 			o.Context = context.Background()
 		}
