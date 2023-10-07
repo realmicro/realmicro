@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/logger"
 )

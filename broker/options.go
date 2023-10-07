@@ -5,19 +5,17 @@ import (
 	"crypto/tls"
 
 	"github.com/realmicro/realmicro/codec"
+	"github.com/realmicro/realmicro/codec/json"
+	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/registry"
 )
 
 type Options struct {
-	Addrs  []string
-	Secure bool
-	Codec  codec.Marshaler
+	Codec codec.Marshaler
 
-	// Handler executed when error happens in broker message
-	// processing
-	ErrorHandler Handler
+	// Logger is the underlying logger
+	Logger logger.Logger
 
-	TLSConfig *tls.Config
 	// Registry used for clustering
 	Registry registry.Registry
 	// Inspector used for task opr
@@ -25,6 +23,14 @@ type Options struct {
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
+
+	// Handler executed when error happens in broker message
+	// processing
+	ErrorHandler Handler
+
+	TLSConfig *tls.Config
+	Addrs     []string
+	Secure    bool
 }
 
 type PublishOptions struct {
@@ -34,17 +40,17 @@ type PublishOptions struct {
 }
 
 type SubscribeOptions struct {
-	// AutoAck defaults to true. When a handler returns
-	// with a nil error the message is acked.
-	AutoAck bool
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
+
 	// Subscribers with the same queue name
 	// will create a shared subscription where each
 	// receives a subset of messages.
 	Queue string
-
-	// Other options for implementations of the interface
-	// can be stored in a context
-	Context context.Context
+	// AutoAck defaults to true. When a handler returns
+	// with a nil error the message is acked.
+	AutoAck bool
 }
 
 type Option func(*Options)
@@ -59,6 +65,21 @@ func PublishContext(ctx context.Context) PublishOption {
 }
 
 type SubscribeOption func(*SubscribeOptions)
+
+func NewOptions(opts ...Option) Options {
+	options := Options{
+		// default to json codec
+		Codec:   json.Marshaler{},
+		Context: context.Background(),
+		Logger:  logger.DefaultLogger,
+	}
+
+	for _, o := range opts {
+		o(&options)
+	}
+
+	return options
+}
 
 func NewSubscribeOptions(opts ...SubscribeOption) SubscribeOptions {
 	opt := SubscribeOptions{
@@ -87,26 +108,11 @@ func Codec(c codec.Marshaler) Option {
 	}
 }
 
-// DisableAutoAck will disable auto acking of messages
-// after they have been handled.
-func DisableAutoAck() SubscribeOption {
-	return func(o *SubscribeOptions) {
-		o.AutoAck = false
-	}
-}
-
 // ErrorHandler will catch all broker errors that cant be handled
 // in normal way, for example Codec errors
 func ErrorHandler(h Handler) Option {
 	return func(o *Options) {
 		o.ErrorHandler = h
-	}
-}
-
-// Queue sets the name of the queue to share messages on
-func Queue(name string) SubscribeOption {
-	return func(o *SubscribeOptions) {
-		o.Queue = name
 	}
 }
 
@@ -127,6 +133,28 @@ func Secure(b bool) Option {
 func TLSConfig(t *tls.Config) Option {
 	return func(o *Options) {
 		o.TLSConfig = t
+	}
+}
+
+// Logger sets the underline logger.
+func Logger(l logger.Logger) Option {
+	return func(o *Options) {
+		o.Logger = l
+	}
+}
+
+// DisableAutoAck will disable auto acking of messages
+// after they have been handled.
+func DisableAutoAck() SubscribeOption {
+	return func(o *SubscribeOptions) {
+		o.AutoAck = false
+	}
+}
+
+// Queue sets the name of the queue to share messages on
+func Queue(name string) SubscribeOption {
+	return func(o *SubscribeOptions) {
+		o.Queue = name
 	}
 }
 

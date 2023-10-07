@@ -1,3 +1,4 @@
+// Package kafka provides a kafka broker using sarama cluster
 package kafka
 
 import (
@@ -5,10 +6,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/google/uuid"
 	"github.com/realmicro/realmicro/broker"
-	"github.com/realmicro/realmicro/codec/json"
 	"github.com/realmicro/realmicro/logger"
 )
 
@@ -294,15 +294,7 @@ func (k *kBroker) String() string {
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {
-	options := broker.Options{
-		// default to json codec
-		Codec:   json.Marshaler{},
-		Context: context.Background(),
-	}
-
-	for _, o := range opts {
-		o(&options)
-	}
+	options := broker.NewOptions(opts...)
 
 	var cAddrs []string
 	for _, addr := range options.Addrs {
