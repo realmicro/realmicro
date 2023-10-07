@@ -239,12 +239,15 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 
 func (k *kBroker) getSaramaConsumerGroup(groupID string) (sarama.ConsumerGroup, error) {
 	config := k.getClusterConfig()
+	fmt.Println("k.addr", k.addrs, groupID)
 	cg, err := sarama.NewConsumerGroup(k.addrs, groupID, config)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("--1111")
 	k.scMutex.Lock()
 	defer k.scMutex.Unlock()
+	fmt.Println("--2222")
 	k.cgs = append(k.cgs, cg)
 	return cg, nil
 }
@@ -348,8 +351,8 @@ func (k *kBroker) getClusterConfig() *sarama.Config {
 	}
 	clusterConfig := DefaultClusterConfig
 	// the oldest supported version is V0_10_2_0
-	if !clusterConfig.Version.IsAtLeast(sarama.V0_10_2_0) {
-		clusterConfig.Version = sarama.V0_10_2_0
+	if !clusterConfig.Version.IsAtLeast(sarama.V1_1_1_0) {
+		clusterConfig.Version = sarama.V1_1_1_0
 	}
 	clusterConfig.Consumer.Return.Errors = true
 	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
