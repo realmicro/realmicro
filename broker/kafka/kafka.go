@@ -350,7 +350,8 @@ func (k *kBroker) getClusterConfig() *sarama.Config {
 		return c
 	}
 	clusterConfig := DefaultClusterConfig
-	// the oldest supported version is V0_10_2_0
+	clusterConfig.Version = sarama.V1_1_1_0
+	// the oldest supported version is V1_1_1_0
 	if !clusterConfig.Version.IsAtLeast(sarama.V1_1_1_0) {
 		clusterConfig.Version = sarama.V1_1_1_0
 	}
