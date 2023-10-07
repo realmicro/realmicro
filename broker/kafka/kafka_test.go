@@ -34,11 +34,11 @@ func TestBroker(t *testing.T) {
 	logger.Init(logger.WithLevel(logger.TraceLevel))
 
 	kc := sarama.NewConfig()
-	kc.Version = sarama.V1_1_1_0
+	//kc.Version = sarama.V1_1_1_0
 	kc.Producer.RequiredAcks = sarama.WaitForAll
 
 	clusterConfig := sarama.NewConfig()
-	clusterConfig.Version = sarama.V1_1_1_0
+	//clusterConfig.Version = sarama.V1_1_1_0
 
 	b := NewBroker(
 		broker.Addrs("127.0.0.1:9092"),
