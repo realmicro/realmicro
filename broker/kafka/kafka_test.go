@@ -2,10 +2,10 @@ package kafka
 
 import (
 	"fmt"
-	"github.com/IBM/sarama"
 	"testing"
 	"time"
 
+	"github.com/IBM/sarama"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/logger"
 )

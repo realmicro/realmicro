@@ -4,7 +4,6 @@ package kafka
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -115,7 +114,6 @@ func (k *kBroker) Connect() error {
 
 	c, err := sarama.NewClient(k.addrs, pconfig)
 	if err != nil {
-		fmt.Println("NewClient", k.addrs, err)
 		return err
 	}
 
@@ -132,7 +130,6 @@ func (k *kBroker) Connect() error {
 	if errChan != nil {
 		ap, err = sarama.NewAsyncProducerFromClient(c)
 		if err != nil {
-			fmt.Println("NewAsyncProducerFromClient", err)
 			return err
 		}
 		// When the ap closed, the Errors() & Successes() channel will be closed
@@ -153,7 +150,6 @@ func (k *kBroker) Connect() error {
 	} else {
 		p, err = sarama.NewSyncProducerFromClient(c)
 		if err != nil {
-			fmt.Println("NewSyncProducerFromClient", err)
 			return err
 		}
 	}
@@ -239,15 +235,12 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 
 func (k *kBroker) getSaramaConsumerGroup(groupID string) (sarama.ConsumerGroup, error) {
 	config := k.getClusterConfig()
-	fmt.Println("k.addr", k.addrs, groupID)
 	cg, err := sarama.NewConsumerGroup(k.addrs, groupID, config)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("--1111")
 	k.scMutex.Lock()
 	defer k.scMutex.Unlock()
-	fmt.Println("--2222")
 	k.cgs = append(k.cgs, cg)
 	return cg, nil
 }
@@ -260,13 +253,11 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	for _, o := range opts {
 		o(&opt)
 	}
-	fmt.Println("111", opt.Queue)
 	// we need to create a new client per consumer
 	cg, err := k.getSaramaConsumerGroup(opt.Queue)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("222")
 	h := &consumerGroupHandler{
 		handler: handler,
 		subopts: opt,
@@ -275,7 +266,6 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	}
 	ctx := context.Background()
 	topics := []string{topic}
-	fmt.Println("333")
 	go func() {
 		for {
 			select {
@@ -296,7 +286,6 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			}
 		}
 	}()
-	fmt.Println("444")
 	return &subscriber{k: k, cg: cg, opts: opt, t: topic}, nil
 }
 
