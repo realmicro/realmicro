@@ -54,7 +54,8 @@ func TestBroker(t *testing.T) {
 		broker.Addrs(addrs),
 		BrokerConfig(kc),
 		ClusterConfig(clusterConfig),
-		AsyncProducer(errors, successes),
+		AsyncProducerError(errors),
+		AsyncProducerMessageSuccess(successes),
 	)
 
 	// Only setting options.
