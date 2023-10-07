@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"fmt"
+	"github.com/IBM/sarama"
 	"testing"
 
 	"github.com/realmicro/realmicro/broker"
@@ -31,8 +32,13 @@ func unsubscribe(t *testing.T, s broker.Subscriber) {
 func TestBroker(t *testing.T) {
 	logger.Init(logger.WithLevel(logger.TraceLevel))
 
+	kc := sarama.NewConfig()
+	kc.Version = sarama.V1_1_1_0
+	kc.Producer.RequiredAcks = sarama.WaitForAll
+
 	b := NewBroker(
 		broker.Addrs("127.0.0.1:9092"),
+		BrokerConfig(kc),
 	)
 
 	// Only setting options.
