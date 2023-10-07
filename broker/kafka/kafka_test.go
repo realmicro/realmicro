@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	"testing"
+	"time"
 
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/logger"
@@ -81,6 +82,8 @@ func TestBroker(t *testing.T) {
 		}
 		publish(t, b, topic, m1)
 		fmt.Println("m1 msg id:", m1.MsgId)
+
+		time.Sleep(10 * time.Second)
 
 		fmt.Println("start unsubscribe")
 		unsubscribe(t, s0)
