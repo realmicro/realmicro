@@ -115,7 +115,7 @@ func (k *kBroker) Connect() error {
 
 	c, err := sarama.NewClient(k.addrs, pconfig)
 	if err != nil {
-		fmt.Println("NewClient", err)
+		fmt.Println("NewClient", k.addrs, err)
 		return err
 	}
 
