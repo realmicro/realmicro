@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -43,8 +44,14 @@ func TestBroker(t *testing.T) {
 	errors := make(chan *sarama.ProducerError, 10)
 	successes := make(chan *sarama.ProducerMessage, 10)
 
+	addrs := os.Getenv("KAFKA_ADDRESS")
+	if len(addrs) == 0 {
+		addrs = "127.0.0.1:9092"
+	}
+	fmt.Println(addrs)
+
 	b := NewBroker(
-		broker.Addrs("127.0.0.1:9092"),
+		broker.Addrs(addrs),
 		BrokerConfig(kc),
 		ClusterConfig(clusterConfig),
 		AsyncProducer(errors, successes),
@@ -72,7 +79,7 @@ func TestBroker(t *testing.T) {
 				t.Fatal(pe.Error())
 				return
 			case pm := <-successes:
-				fmt.Println("ProducerMessage:", pm.Metadata)
+				fmt.Println("ProducerMessage:", pm.Metadata, pm.Value, pm.Partition, pm.Offset)
 			}
 		}
 	}()
