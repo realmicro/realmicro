@@ -257,7 +257,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	for _, o := range opts {
 		o(&opt)
 	}
-	fmt.Println("111")
+	fmt.Println("111", opt.Queue)
 	// we need to create a new client per consumer
 	cg, err := k.getSaramaConsumerGroup(opt.Queue)
 	if err != nil {
