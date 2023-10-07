@@ -78,7 +78,7 @@ func TestBroker(t *testing.T) {
 		fmt.Println("m0 msg id:", m0.MsgId)
 
 		m1 := &broker.Message{
-			Body: []byte("hello"),
+			Body: []byte("world"),
 		}
 		publish(t, b, topic, m1)
 		fmt.Println("m1 msg id:", m1.MsgId)
