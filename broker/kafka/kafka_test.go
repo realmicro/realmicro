@@ -48,6 +48,8 @@ func TestBroker(t *testing.T) {
 	}
 	defer b.Disconnect()
 
+	fmt.Println("connect success")
+
 	// Large enough buffer to not block.
 	msgs := make(chan string, 10)
 
@@ -55,6 +57,7 @@ func TestBroker(t *testing.T) {
 	consumerGroup := "realmicro-test"
 
 	go func() {
+		fmt.Println("start subscribe")
 		s0 := subscribe(t, b, topic, func(event broker.Event) error {
 			m := event.Message()
 			fmt.Println("[s0] Received message:", event.Topic(), string(m.Body))
@@ -62,6 +65,7 @@ func TestBroker(t *testing.T) {
 			return nil
 		}, broker.Queue(consumerGroup))
 
+		fmt.Println("start publish")
 		m0 := &broker.Message{
 			Body: []byte("hello"),
 		}
@@ -74,6 +78,7 @@ func TestBroker(t *testing.T) {
 		publish(t, b, topic, m1)
 		fmt.Println("m1 msg id:", m1.MsgId)
 
+		fmt.Println("start unsubscribe")
 		unsubscribe(t, s0)
 
 		close(msgs)
