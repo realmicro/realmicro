@@ -355,6 +355,6 @@ func (k *kBroker) getClusterConfig() *sarama.Config {
 		clusterConfig.Version = sarama.V1_1_1_0
 	}
 	clusterConfig.Consumer.Return.Errors = true
-	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
+	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
 	return clusterConfig
 }
