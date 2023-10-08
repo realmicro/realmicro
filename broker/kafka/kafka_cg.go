@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/logger"
@@ -52,7 +51,7 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 
 		err := h.handler(p)
 		if err == nil && h.subopts.AutoAck {
-			fmt.Println("AutoAck", msg.Offset)
+			logger.Trace("AutoAck: Partition", msg.Partition, ", Offset: ", msg.Offset)
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
 			p.err = err

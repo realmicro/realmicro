@@ -80,7 +80,7 @@ func TestBroker(t *testing.T) {
 				t.Fatal(pe.Error())
 				return
 			case pm := <-successes:
-				fmt.Println("ProducerMessage:", string(pm.Metadata.(*broker.Message).Body), "Offset:", pm.Offset)
+				fmt.Println("ProducerMessage:", string(pm.Metadata.(*broker.Message).Body), "Partition:", pm.Partition, "Offset:", pm.Offset)
 			}
 		}
 	}()
