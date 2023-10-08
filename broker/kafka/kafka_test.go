@@ -57,7 +57,8 @@ func TestBroker(t *testing.T) {
 			return
 		}),
 		AsyncProducerSuccess(func(pm *sarama.ProducerMessage) {
-			fmt.Println("ProducerMessage:", string(pm.Metadata.(*broker.Message).Body), "Partition:", pm.Partition, "Offset:", pm.Offset)
+			fmt.Println("AsyncProducerSuccess:", string(pm.Metadata.(*broker.Message).Body),
+				"Partition:", pm.Partition, "Offset:", pm.Offset)
 		}),
 	)
 

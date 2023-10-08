@@ -4,7 +4,6 @@ package kafka
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -129,14 +128,12 @@ func (k *kBroker) Connect() error {
 	)
 
 	if asyncProduceEnable {
-		fmt.Println("asyncProduceEnable")
 		ap, err = sarama.NewAsyncProducerFromClient(c)
 		if err != nil {
 			return err
 		}
 
 		if successHandler != nil {
-			fmt.Println("successHandler")
 			go func() {
 				for v := range ap.Successes() {
 					successHandler(v)
