@@ -41,9 +41,6 @@ func TestBroker(t *testing.T) {
 	clusterConfig := sarama.NewConfig()
 	//clusterConfig.Version = sarama.V1_1_1_0
 
-	errors := make(chan *sarama.ProducerError, 10)
-	successes := make(chan *sarama.ProducerMessage, 10)
-
 	addrs := os.Getenv("KAFKA_ADDRESS")
 	if len(addrs) == 0 {
 		addrs = "127.0.0.1:9092"
@@ -54,8 +51,14 @@ func TestBroker(t *testing.T) {
 		broker.Addrs(addrs),
 		BrokerConfig(kc),
 		ClusterConfig(clusterConfig),
-		AsyncProducerError(errors),
-		AsyncProducerMessageSuccess(successes),
+		AsyncProducerEnable(),
+		AsyncProducerError(func(e *sarama.ProducerError) {
+			t.Fatal(e.Error())
+			return
+		}),
+		AsyncProducerSuccess(func(pm *sarama.ProducerMessage) {
+			fmt.Println("ProducerMessage:", string(pm.Metadata.(*broker.Message).Body), "Partition:", pm.Partition, "Offset:", pm.Offset)
+		}),
 	)
 
 	// Only setting options.
@@ -72,18 +75,6 @@ func TestBroker(t *testing.T) {
 
 	topic := "realmicro-test"
 	consumerGroup := "realmicro-test"
-
-	go func() {
-		for {
-			select {
-			case pe := <-errors:
-				t.Fatal(pe.Error())
-				return
-			case pm := <-successes:
-				fmt.Println("ProducerMessage:", string(pm.Metadata.(*broker.Message).Body), "Partition:", pm.Partition, "Offset:", pm.Offset)
-			}
-		}
-	}()
 
 	go func() {
 		fmt.Println("start subscribe")

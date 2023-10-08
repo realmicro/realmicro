@@ -4,6 +4,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -106,11 +107,16 @@ func (k *kBroker) Connect() error {
 	k.scMutex.Unlock()
 
 	pconfig := k.getBrokerConfig()
-	// For implementation reasons, the SyncProducer requires
-	// `Producer.Return.Errors` and `Producer.Return.Successes`
-	// to be set to true in its configuration.
-	pconfig.Producer.Return.Successes = true
+
+	var (
+		asyncProduceEnable, errHandler, successHandler = k.getAsyncProduceHandler()
+	)
+
 	pconfig.Producer.Return.Errors = true
+	// sync mode
+	if !asyncProduceEnable || successHandler != nil {
+		pconfig.Producer.Return.Successes = true
+	}
 
 	c, err := sarama.NewClient(k.addrs, pconfig)
 	if err != nil {
@@ -118,32 +124,22 @@ func (k *kBroker) Connect() error {
 	}
 
 	var (
-		ap                   sarama.AsyncProducer
-		p                    sarama.SyncProducer
-		errChan, successChan = k.getAsyncProduceChan()
+		ap sarama.AsyncProducer
+		p  sarama.SyncProducer
 	)
 
-	// Because error chan must require, so only error chan
-	// If set the error chan, will use async produce
-	// else use sync produce
-	// only keep one client resource, is c variable
-	if errChan != nil {
+	if asyncProduceEnable {
+		fmt.Println("asyncProduceEnable")
 		ap, err = sarama.NewAsyncProducerFromClient(c)
 		if err != nil {
 			return err
 		}
-		// When the ap closed, the Errors() & Successes() channel will be closed
-		// So the goroutine will auto exit
-		go func() {
-			for v := range ap.Errors() {
-				errChan <- v
-			}
-		}()
 
-		if successChan != nil {
+		if successHandler != nil {
+			fmt.Println("successHandler")
 			go func() {
 				for v := range ap.Successes() {
-					successChan <- v
+					successHandler(v)
 				}
 			}()
 		}
@@ -152,7 +148,22 @@ func (k *kBroker) Connect() error {
 		if err != nil {
 			return err
 		}
+		go func() {
+			for v := range ap.Successes() {
+				successHandler(v)
+			}
+		}()
 	}
+
+	// When the ap closed, the Errors() & Successes() channel will be closed
+	// So the goroutine will auto exit
+	go func() {
+		for v := range ap.Errors() {
+			if errHandler != nil {
+				errHandler(v)
+			}
+		}
+	}()
 
 	k.scMutex.Lock()
 	k.c = c
@@ -217,10 +228,23 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 		return err
 	}
 
+	options := broker.PublishOptions{}
+	for _, o := range opts {
+		o(&options)
+	}
+
+	var key string
+	if options.Context != nil {
+		key, _ = options.Context.Value(publishMessageKey{}).(string)
+	}
+
 	var produceMsg = &sarama.ProducerMessage{
 		Topic:    topic,
 		Value:    sarama.ByteEncoder(b),
 		Metadata: msg,
+	}
+	if len(key) > 0 {
+		produceMsg.Key = sarama.StringEncoder(key)
 	}
 	if k.ap != nil {
 		k.ap.Input() <- produceMsg
@@ -320,18 +344,22 @@ func (k *kBroker) getBrokerConfig() *sarama.Config {
 	return DefaultBrokerConfig
 }
 
-func (k *kBroker) getAsyncProduceChan() (chan<- *sarama.ProducerError, chan<- *sarama.ProducerMessage) {
+func (k *kBroker) getAsyncProduceHandler() (bool, ProduceErrorHandler, ProduceSuccessHandler) {
 	var (
-		errors    chan<- *sarama.ProducerError
-		successes chan<- *sarama.ProducerMessage
+		asyncProduceEnable bool
+		errorsHandler      ProduceErrorHandler
+		successesHandler   ProduceSuccessHandler
 	)
-	if c, ok := k.opts.Context.Value(asyncProduceErrorKey{}).(chan<- *sarama.ProducerError); ok {
-		errors = c
+	if enable, ok := k.opts.Context.Value(asyncProduceEnableKey{}).(bool); ok {
+		asyncProduceEnable = enable
 	}
-	if c, ok := k.opts.Context.Value(asyncProduceSuccessKey{}).(chan<- *sarama.ProducerMessage); ok {
-		successes = c
+	if h, ok := k.opts.Context.Value(asyncProduceErrorKey{}).(ProduceErrorHandler); ok {
+		errorsHandler = h
 	}
-	return errors, successes
+	if h, ok := k.opts.Context.Value(asyncProduceSuccessKey{}).(ProduceSuccessHandler); ok {
+		successesHandler = h
+	}
+	return asyncProduceEnable, errorsHandler, successesHandler
 }
 
 func (k *kBroker) getClusterConfig() *sarama.Config {

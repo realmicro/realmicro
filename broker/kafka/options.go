@@ -12,6 +12,9 @@ var (
 	DefaultClusterConfig = sarama.NewConfig()
 )
 
+type ProduceErrorHandler func(e *sarama.ProducerError)
+type ProduceSuccessHandler func(pm *sarama.ProducerMessage)
+
 type brokerConfigKey struct{}
 type clusterConfigKey struct{}
 
@@ -23,15 +26,20 @@ func ClusterConfig(c *sarama.Config) broker.Option {
 	return setBrokerOption(clusterConfigKey{}, c)
 }
 
+type asyncProduceEnableKey struct{}
 type asyncProduceErrorKey struct{}
 type asyncProduceSuccessKey struct{}
 
-func AsyncProducerError(errors chan<- *sarama.ProducerError) broker.Option {
-	return setBrokerOption(asyncProduceErrorKey{}, errors)
+func AsyncProducerEnable() broker.Option {
+	return setBrokerOption(asyncProduceEnableKey{}, true)
 }
 
-func AsyncProducerMessageSuccess(successes chan<- *sarama.ProducerMessage) broker.Option {
-	return setBrokerOption(asyncProduceSuccessKey{}, successes)
+func AsyncProducerError(errorsHandler ProduceErrorHandler) broker.Option {
+	return setBrokerOption(asyncProduceErrorKey{}, errorsHandler)
+}
+
+func AsyncProducerSuccess(successesHandler ProduceSuccessHandler) broker.Option {
+	return setBrokerOption(asyncProduceSuccessKey{}, successesHandler)
 }
 
 type subscribeContextKey struct{}
@@ -45,4 +53,10 @@ type subscribeConfigKey struct{}
 
 func SubscribeConfig(c *sarama.Config) broker.SubscribeOption {
 	return setSubscribeOption(subscribeConfigKey{}, c)
+}
+
+type publishMessageKey struct{}
+
+func PublishMessageKey(key string) broker.PublishOption {
+	return setPublishOption(publishMessageKey{}, key)
 }
