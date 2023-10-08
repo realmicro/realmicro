@@ -51,7 +51,7 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 
 		err := h.handler(p)
 		if err == nil && h.subopts.AutoAck {
-			logger.Trace("AutoAck: Partition", msg.Partition, ", Offset: ", msg.Offset)
+			logger.Trace("AutoAck: Partition: ", msg.Partition, ", Offset: ", msg.Offset)
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
 			p.err = err
