@@ -1,4 +1,4 @@
-package confluent
+package confluentkafka
 
 import (
 	"fmt"
