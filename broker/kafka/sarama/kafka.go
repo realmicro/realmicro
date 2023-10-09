@@ -1,5 +1,5 @@
-// Package kafka provides a kafka broker using sarama cluster
-package kafka
+// Package sarama provides a kafka broker using sarama cluster
+package sarama
 
 import (
 	"context"
@@ -106,7 +106,6 @@ func (k *kBroker) Connect() error {
 	k.scMutex.Unlock()
 
 	pconfig := k.getBrokerConfig()
-
 	var (
 		asyncProduceEnable, errHandler, successHandler = k.getAsyncProduceHandler()
 	)

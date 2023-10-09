@@ -4,14 +4,14 @@ go 1.15
 
 require (
 	github.com/IBM/sarama v1.41.2
-	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/fsnotify/fsnotify v1.5.1
+	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0 // indirect
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/go-redis/redis/v8 v8.11.4
-	github.com/golang/protobuf v1.5.2
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hibiken/asynq v0.23.0
@@ -36,7 +36,7 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65
-	google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7
-	google.golang.org/protobuf v1.28.1
+	golang.org/x/time v0.3.0
+	google.golang.org/genproto v0.0.0-20230331144136-dcfb400f0633
+	google.golang.org/protobuf v1.30.0
 )

@@ -1,4 +1,4 @@
-package kafka
+package sarama
 
 import (
 	"fmt"
@@ -68,7 +68,6 @@ func TestBroker(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer b.Disconnect()
-
 	fmt.Println("connect success")
 
 	// Large enough buffer to not block.
