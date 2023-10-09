@@ -77,6 +77,11 @@ func TestBroker(t *testing.T) {
 		}
 		publish(t, b, topic, m1)
 
+		m2 := &broker.Message{
+			Body: []byte("partition 0 - message"),
+		}
+		publish(t, b, topic, m2, PublishPartition(0))
+
 		time.Sleep(10 * time.Second)
 
 		fmt.Println("start unsubscribe")
