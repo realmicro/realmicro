@@ -80,7 +80,7 @@ func (k *kBroker) Connect() error {
 					if ev.TopicPartition.Error != nil {
 						logger.Errorf("Delivery failed: %v", ev.TopicPartition.Error)
 					} else {
-						logger.Tracef("Delivered message to topic %s [%d] at offset %v, value: %s",
+						logger.Tracef("Delivered message to topic %s [%d] at offset %v, key: %s, value: %s",
 							*ev.TopicPartition.Topic, ev.TopicPartition.Partition,
 							ev.TopicPartition.Offset, string(ev.Key), string(ev.Value))
 					}
