@@ -18,7 +18,7 @@ then
     help
 fi
 
-cat package.json | jq '.version="'${TAG}'"' > 1.json | mv -f 1.json package.json
+sed --in-place "s/\(\"version\": \)\"[^\"]*\"/\1\"${TAG#v}\"/" ./package.json
 
 git tag ${TAG}
 git push origin ${TAG}
