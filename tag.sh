@@ -18,7 +18,7 @@ then
     help
 fi
 
-sed --in-place "s/\(\"version\": \)\"[^\"]*\"/\1\"${TAG#v}\"/" ./package.json
+sed -i "" "s/\(\"version\": \)\"[^\"]*\"/\1\"${TAG#v}\"/" package.json
 
 git tag ${TAG}
 git push origin ${TAG}
