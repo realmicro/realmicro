@@ -18,5 +18,7 @@ then
     help
 fi
 
+cat package.json | jq '.version="'${TAG}'"' > 1.json | mv -f 1.json package.json
+
 git tag ${TAG}
 git push origin ${TAG}

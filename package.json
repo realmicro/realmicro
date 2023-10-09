@@ -1,7 +1,7 @@
 {
   "name": "realmicro",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "v0.2.0",
+  "main": "main.go",
   "repository": "git@github.com:realmicro/realmicro.git",
   "author": "ReeZhou <reechou@gmail.com>",
   "license": "BSD-2-clause"
