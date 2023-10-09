@@ -70,7 +70,7 @@ func TestBroker(t *testing.T) {
 		m0 := &broker.Message{
 			Body: []byte("hello"),
 		}
-		publish(t, b, topic, m0)
+		publish(t, b, topic, m0, PublishMessageKey("hello"))
 
 		m1 := &broker.Message{
 			Body: []byte("world"),

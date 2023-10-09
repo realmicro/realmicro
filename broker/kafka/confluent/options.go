@@ -20,7 +20,12 @@ func AsyncProducerSuccess(successesHandler ProduceSuccessHandler) broker.Option 
 }
 
 type publishPartitionKey struct{}
+type publishMessageKey struct{}
 
 func PublishPartition(partition int32) broker.PublishOption {
 	return setPublishOption(publishPartitionKey{}, partition)
+}
+
+func PublishMessageKey(key string) broker.PublishOption {
+	return setPublishOption(publishMessageKey{}, key)
 }

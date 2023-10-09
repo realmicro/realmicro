@@ -82,7 +82,7 @@ func (k *kBroker) Connect() error {
 					} else {
 						logger.Tracef("Delivered message to topic %s [%d] at offset %v, value: %s",
 							*ev.TopicPartition.Topic, ev.TopicPartition.Partition,
-							ev.TopicPartition.Offset, string(ev.Value))
+							ev.TopicPartition.Offset, string(ev.Key), string(ev.Value))
 					}
 				}
 			case kafka.Error:
@@ -158,10 +158,12 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 	}
 
 	var partition = kafka.PartitionAny
+	var key string
 	if options.Context != nil {
 		if p, ok := options.Context.Value(publishPartitionKey{}).(int32); ok {
 			partition = p
 		}
+		key, _ = options.Context.Value(publishMessageKey{}).(string)
 	}
 
 	m := &kafka.Message{
@@ -171,6 +173,9 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 		},
 		Value:   b,
 		Headers: headers,
+	}
+	if len(key) > 0 {
+		m.Key = []byte(key)
 	}
 	if err = k.producer.Produce(m, nil); err != nil {
 		return err
