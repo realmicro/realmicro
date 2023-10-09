@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 	"github.com/realmicro/realmicro/config/encoder"
 	"github.com/realmicro/realmicro/config/encoder/json"
 	"github.com/realmicro/realmicro/config/reader"
