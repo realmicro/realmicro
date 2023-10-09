@@ -97,7 +97,7 @@ func (l *logrusLogger) Options() logger.Options {
 	return l.opts.Options
 }
 
-// New builds a new logger based on options
+// NewLogger New builds a new logger based on options
 func NewLogger(opts ...logger.Option) logger.Logger {
 	// Default options
 	options := Options{
