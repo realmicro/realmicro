@@ -96,4 +96,5 @@ func TestBroker(t *testing.T) {
 	}
 
 	fmt.Println(actual)
+	time.Sleep(3 * time.Second)
 }

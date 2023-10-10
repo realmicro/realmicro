@@ -1,6 +1,7 @@
 package confluentkafka
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -224,6 +225,9 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 
 	go func() {
 		for s.running {
+			if !s.running {
+				fmt.Println("subscribe running end")
+			}
 			msg, err := consumer.ReadMessage(-1)
 			if err == nil {
 				// handle
