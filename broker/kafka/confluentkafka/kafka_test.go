@@ -144,13 +144,23 @@ func TestSyncBroker(t *testing.T) {
 
 		fmt.Println("start publish")
 
-		for i := 0; i < 10; i++ {
-			m := &broker.Message{
-				Body: []byte(fmt.Sprintf("hello#%d", i)),
+		go func() {
+			for i := 0; i < 10; i++ {
+				m := &broker.Message{
+					Body: []byte(fmt.Sprintf("g0#hello#%d", i)),
+				}
+				publish(t, b, topic, m)
 			}
-			publish(t, b, topic, m)
-			time.Sleep(1 * time.Second)
-		}
+		}()
+
+		go func() {
+			for i := 0; i < 10; i++ {
+				m := &broker.Message{
+					Body: []byte(fmt.Sprintf("g1#hello#%d", i)),
+				}
+				publish(t, b, topic, m)
+			}
+		}()
 
 		m0 := &broker.Message{
 			Body: []byte("hello00#message#key"),
@@ -189,6 +199,7 @@ func TestSyncBroker(t *testing.T) {
 		actual = append(actual, msg)
 	}
 
+	fmt.Println("msg len:", len(actual), "check == 25")
 	fmt.Println(actual)
 	time.Sleep(10 * time.Second)
 }
