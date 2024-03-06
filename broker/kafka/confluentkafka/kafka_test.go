@@ -131,14 +131,14 @@ func TestSyncBroker(t *testing.T) {
 		s0 := subscribe(t, b, topic, func(event broker.Event) error {
 			m := event.Message()
 			fmt.Println("[s0] Received message:", event.Topic(), string(m.Body))
-			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
+			msgs <- fmt.Sprintf("s0:%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, broker.Queue(consumerGroup), SubscribeSync())
 
 		s1 := subscribe(t, b, topic, func(event broker.Event) error {
 			m := event.Message()
 			fmt.Println("[s1] Received message:", event.Topic(), string(m.Body))
-			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
+			msgs <- fmt.Sprintf("s1:%s:%s", event.Topic(), string(m.Body))
 			return nil
 		}, broker.Queue(consumerGroup), SubscribeSync())
 
@@ -146,14 +146,14 @@ func TestSyncBroker(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			m := &broker.Message{
-				Body: []byte(fmt.Sprintf("hello %d", i)),
+				Body: []byte(fmt.Sprintf("hello#%d", i)),
 			}
 			publish(t, b, topic, m)
 			time.Sleep(1 * time.Second)
 		}
 
 		m0 := &broker.Message{
-			Body: []byte("hello"),
+			Body: []byte("hello#message#key"),
 		}
 		publish(t, b, topic, m0, PublishMessageKey("hello"))
 
@@ -163,7 +163,7 @@ func TestSyncBroker(t *testing.T) {
 		publish(t, b, topic, m1)
 
 		m2 := &broker.Message{
-			Body: []byte("partition 0 - message"),
+			Body: []byte("partition#0#message"),
 		}
 		publish(t, b, topic, m2, PublishPartition(0))
 
