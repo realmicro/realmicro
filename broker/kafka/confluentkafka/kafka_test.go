@@ -153,9 +153,17 @@ func TestSyncBroker(t *testing.T) {
 		}
 
 		m0 := &broker.Message{
-			Body: []byte("hello#message#key"),
+			Body: []byte("hello00#message#key"),
 		}
-		publish(t, b, topic, m0, PublishMessageKey("hello"))
+		publish(t, b, topic, m0, PublishMessageKey("mk"))
+		m01 := &broker.Message{
+			Body: []byte("hello01#message#key"),
+		}
+		publish(t, b, topic, m01, PublishMessageKey("mk"))
+		m02 := &broker.Message{
+			Body: []byte("hello02#message#key"),
+		}
+		publish(t, b, topic, m02, PublishMessageKey("mk"))
 
 		m1 := &broker.Message{
 			Body: []byte("world"),
