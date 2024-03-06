@@ -105,6 +105,7 @@ func TestBroker(t *testing.T) {
 		actual = append(actual, msg)
 	}
 
+	fmt.Println("msg len:", len(actual), "check == 13")
 	fmt.Println(actual)
 	time.Sleep(10 * time.Second)
 }
