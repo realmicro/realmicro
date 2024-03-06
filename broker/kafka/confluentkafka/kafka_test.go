@@ -159,6 +159,9 @@ func TestSyncBroker(t *testing.T) {
 					Body: []byte(fmt.Sprintf("g1#hello#%d", i)),
 				}
 				publish(t, b, topic, m)
+				if i%2 == 0 {
+					time.Sleep(time.Second)
+				}
 			}
 		}()
 
