@@ -99,7 +99,7 @@ func TestBroker(t *testing.T) {
 	time.Sleep(10 * time.Second)
 }
 
-func TestBrokerSync(t *testing.T) {
+func TestSyncBroker(t *testing.T) {
 	logger.Init(logger.WithLevel(logger.TraceLevel))
 
 	addrs := os.Getenv("KAFKA_ADDRESS")
