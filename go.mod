@@ -6,7 +6,7 @@ require (
 	dario.cat/mergo v1.0.0
 	github.com/IBM/sarama v1.41.2
 	github.com/bitly/go-simplejson v0.5.0
-	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
+	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2

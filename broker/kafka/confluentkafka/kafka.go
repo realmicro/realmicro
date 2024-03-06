@@ -193,7 +193,18 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		o(&opt)
 	}
 
-	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
+	var partition = kafka.PartitionAny
+	var ifSync bool // 是否同步消费
+	if opt.Context != nil {
+		if p, ok := opt.Context.Value(subscribePartitionKey{}).(int32); ok {
+			partition = p
+		}
+		if s, ok := opt.Context.Value(subscribeSyncKey{}).(bool); ok {
+			ifSync = s
+		}
+	}
+
+	cm := &kafka.ConfigMap{
 		"bootstrap.servers": strings.Join(k.addrs, ","),
 		"group.id":          opt.Queue,
 		"auto.offset.reset": "earliest",
@@ -201,7 +212,11 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		// 使用 Kafka 消费分组机制时，消费者超时时间。当 Broker 在该时间内没有收到消费者的心跳时，认为该消费者故障失败，Broker
 		// 发起重新 Rebalance 过程。目前该值的配置必须在 Broker 配置group.min.session.timeout.ms=6000和group.max.session.timeout.ms=300000 之间
 		"session.timeout.ms": 10000,
-	})
+	}
+	if ifSync {
+		cm.SetKey("enable.auto.offset.store", false)
+	}
+	consumer, err := kafka.NewConsumer(cm)
 	if err != nil {
 		return nil, err
 	}
@@ -210,8 +225,16 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	k.consumers = append(k.consumers, consumer)
 	k.scMutex.Unlock()
 
-	if err = consumer.SubscribeTopics([]string{topic}, nil); err != nil {
-		return nil, err
+	if partition != kafka.PartitionAny {
+		if err = consumer.Assign([]kafka.TopicPartition{
+			{Topic: &topic, Partition: partition},
+		}); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = consumer.SubscribeTopics([]string{topic}, nil); err != nil {
+			return nil, err
+		}
 	}
 
 	s := &subscriber{
@@ -226,8 +249,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		for s.running {
 			msg, err := consumer.ReadMessage(-1)
 			if err == nil {
-				// handle
-				go func() {
+				hs := func() {
 					var m broker.Message
 					p := &publication{
 						m: &m,
@@ -266,7 +288,18 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 							logger.Errorf("[kafka]: subscriber error: %v", err)
 						}
 					}
-				}()
+				}
+				if ifSync {
+					// We can do any long-running async operation here, because the next
+					// offset will not be available for commit until we call `c.StoreOffsets(...)`
+					hs()
+					if _, err = consumer.StoreMessage(msg); err != nil {
+						logger.Errorf("[kafka]: StoreMessage error: %v", err)
+					}
+				} else {
+					// async handle
+					go hs()
+				}
 			} else {
 				logger.Errorf("[kafka]: consumer error: %v", err)
 			}

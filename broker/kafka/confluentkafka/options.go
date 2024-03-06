@@ -29,3 +29,15 @@ func PublishPartition(partition int32) broker.PublishOption {
 func PublishMessageKey(key string) broker.PublishOption {
 	return setPublishOption(publishMessageKey{}, key)
 }
+
+type subscribePartitionKey struct{}
+type subscribeSyncKey struct{}
+
+func SubscribePartition(partition int32) broker.SubscribeOption {
+	return setSubscribeOption(subscribePartitionKey{}, partition)
+}
+
+// SubscribeSync is a subscribe option to enable synchronous message processing
+func SubscribeSync() broker.SubscribeOption {
+	return setSubscribeOption(subscribeSyncKey{}, true)
+}

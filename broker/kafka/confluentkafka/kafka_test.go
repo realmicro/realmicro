@@ -98,3 +98,89 @@ func TestBroker(t *testing.T) {
 	fmt.Println(actual)
 	time.Sleep(10 * time.Second)
 }
+
+func TestBrokerSync(t *testing.T) {
+	logger.Init(logger.WithLevel(logger.TraceLevel))
+
+	addrs := os.Getenv("KAFKA_ADDRESS")
+	if len(addrs) == 0 {
+		addrs = "127.0.0.1:9092"
+	}
+	fmt.Println(addrs)
+
+	b := NewBroker(
+		broker.Addrs(addrs),
+	)
+
+	// Only setting options.
+	b.Init()
+	if err := b.Connect(); err != nil {
+		t.Fatal(err)
+	}
+	defer b.Disconnect()
+	fmt.Println("connect success")
+
+	// Large enough buffer to not block.
+	msgs := make(chan string, 10)
+
+	topic := "realmicro-test"
+	consumerGroup := "realmicro-test"
+
+	go func() {
+		fmt.Println("start subscribe")
+		s0 := subscribe(t, b, topic, func(event broker.Event) error {
+			m := event.Message()
+			fmt.Println("[s0] Received message:", event.Topic(), string(m.Body))
+			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
+			return nil
+		}, broker.Queue(consumerGroup), SubscribeSync())
+
+		s1 := subscribe(t, b, topic, func(event broker.Event) error {
+			m := event.Message()
+			fmt.Println("[s1] Received message:", event.Topic(), string(m.Body))
+			msgs <- fmt.Sprintf("%s:%s", event.Topic(), string(m.Body))
+			return nil
+		}, broker.Queue(consumerGroup), SubscribeSync())
+
+		fmt.Println("start publish")
+
+		for i := 0; i < 10; i++ {
+			m := &broker.Message{
+				Body: []byte(fmt.Sprintf("hello %d", i)),
+			}
+			publish(t, b, topic, m)
+			time.Sleep(1 * time.Second)
+		}
+
+		m0 := &broker.Message{
+			Body: []byte("hello"),
+		}
+		publish(t, b, topic, m0, PublishMessageKey("hello"))
+
+		m1 := &broker.Message{
+			Body: []byte("world"),
+		}
+		publish(t, b, topic, m1)
+
+		m2 := &broker.Message{
+			Body: []byte("partition 0 - message"),
+		}
+		publish(t, b, topic, m2, PublishPartition(0))
+
+		time.Sleep(10 * time.Second)
+
+		fmt.Println("start unsubscribe")
+		unsubscribe(t, s0)
+		unsubscribe(t, s1)
+
+		close(msgs)
+	}()
+
+	var actual []string
+	for msg := range msgs {
+		actual = append(actual, msg)
+	}
+
+	fmt.Println(actual)
+	time.Sleep(10 * time.Second)
+}
