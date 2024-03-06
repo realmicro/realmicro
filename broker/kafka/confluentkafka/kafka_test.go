@@ -67,6 +67,16 @@ func TestBroker(t *testing.T) {
 		}, broker.Queue(consumerGroup))
 
 		fmt.Println("start publish")
+
+		go func() {
+			for i := 0; i < 10; i++ {
+				m := &broker.Message{
+					Body: []byte(fmt.Sprintf("g0#hello#%d", i)),
+				}
+				publish(t, b, topic, m)
+			}
+		}()
+
 		m0 := &broker.Message{
 			Body: []byte("hello"),
 		}
