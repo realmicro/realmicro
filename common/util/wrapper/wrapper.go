@@ -10,6 +10,7 @@ import (
 	"github.com/realmicro/realmicro/debug/trace"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/server"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 type fromServiceWrapper struct {
@@ -18,10 +19,6 @@ type fromServiceWrapper struct {
 	// headers to inject
 	headers metadata.Metadata
 }
-
-var (
-	HeaderPrefix = "Micro-"
-)
 
 func (f *fromServiceWrapper) setHeaders(ctx context.Context) context.Context {
 	// don't overwrite keys
@@ -48,7 +45,7 @@ func FromService(name string, c client.Client) client.Client {
 	return &fromServiceWrapper{
 		c,
 		metadata.Metadata{
-			HeaderPrefix + "From-Service": name,
+			headers.Prefix + "From-Service": name,
 		},
 	}
 }
@@ -159,8 +156,8 @@ func (a *authWrapper) Call(ctx context.Context, req client.Request, rsp interfac
 	}
 
 	// set the namespace header if it has not been set (e.g. on a service to service request)
-	if _, ok := metadata.Get(ctx, "Micro-Namespace"); !ok {
-		ctx = metadata.Set(ctx, "Micro-Namespace", aa.Options().Namespace)
+	if _, ok := metadata.Get(ctx, headers.Namespace); !ok {
+		ctx = metadata.Set(ctx, headers.Namespace, aa.Options().Namespace)
 	}
 
 	// check to see if we have a valid access token

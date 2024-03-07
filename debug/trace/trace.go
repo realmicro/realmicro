@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/realmicro/realmicro/metadata"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 // Tracer is an interface for distributed tracing
@@ -48,15 +49,10 @@ type Span struct {
 	Type SpanType
 }
 
-const (
-	traceIDKey = "Micro-Trace-Id"
-	spanIDKey  = "Micro-Span-Id"
-)
-
 // FromContext returns a span from context
 func FromContext(ctx context.Context) (traceID string, parentSpanID string, isFound bool) {
-	traceID, traceOk := metadata.Get(ctx, traceIDKey)
-	microID, microOk := metadata.Get(ctx, "Micro-Id")
+	traceID, traceOk := metadata.Get(ctx, headers.TraceIDKey)
+	microID, microOk := metadata.Get(ctx, headers.ID)
 	if !traceOk && !microOk {
 		isFound = false
 		return
@@ -64,15 +60,15 @@ func FromContext(ctx context.Context) (traceID string, parentSpanID string, isFo
 	if !traceOk {
 		traceID = microID
 	}
-	parentSpanID, ok := metadata.Get(ctx, spanIDKey)
+	parentSpanID, ok := metadata.Get(ctx, headers.SpanID)
 	return traceID, parentSpanID, ok
 }
 
 // ToContext saves the trace and span ids in the context
 func ToContext(ctx context.Context, traceID, parentSpanID string) context.Context {
 	return metadata.MergeContext(ctx, map[string]string{
-		traceIDKey: traceID,
-		spanIDKey:  parentSpanID,
+		headers.TraceIDKey: traceID,
+		headers.SpanID:     parentSpanID,
 	}, true)
 }
 

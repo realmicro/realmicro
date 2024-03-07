@@ -37,17 +37,17 @@ type Service struct {
 }
 
 type Node struct {
+	Metadata map[string]string `json:"metadata"`
 	Id       string            `json:"id"`
 	Address  string            `json:"address"`
 	Port     int               `json:"port"`
-	Metadata map[string]string `json:"metadata"`
 }
 
 type Endpoint struct {
-	Name     string            `json:"name"`
 	Request  *Value            `json:"request"`
 	Response *Value            `json:"response"`
 	Metadata map[string]string `json:"metadata"`
+	Name     string            `json:"name"`
 }
 
 type Value struct {

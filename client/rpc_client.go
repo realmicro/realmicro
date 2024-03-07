@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -14,17 +15,26 @@ import (
 	"github.com/realmicro/realmicro/common/util/net"
 	"github.com/realmicro/realmicro/common/util/pool"
 	"github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/selector"
 	"github.com/realmicro/realmicro/transport"
+	"github.com/realmicro/realmicro/transport/headers"
+)
+
+const (
+	packageID = "real.micro.client"
 )
 
 type rpcClient struct {
-	seq  uint64
-	once atomic.Value
 	opts Options
+	once atomic.Value
 	pool pool.Pool
+
+	seq uint64
+
+	mu sync.RWMutex
 }
 
 func newRpcClient(opt ...Option) Client {
@@ -78,7 +88,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		for k, v := range md {
 			// don't copy Micro-Topic header, that used for pub/sub
 			// this fix case then client uses the same context that received in subscriber
-			if k == "Micro-Topic" {
+			if k == headers.Message {
 				continue
 			}
 			msg.Header[k] = v
@@ -100,7 +110,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		var err error
 		cf, err = r.newCodec(req.ContentType())
 		if err != nil {
-			return errors.InternalServerError("real.micro.client", err.Error())
+			return errors.InternalServerError(packageID, err.Error())
 		}
 	}
 
@@ -114,7 +124,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 
 	c, err := r.pool.Get(address, dOpts...)
 	if err != nil {
-		return errors.InternalServerError("real.micro.client", "connection error: %v", err)
+		return errors.InternalServerError(packageID, "connection error: %v", err)
 	}
 
 	seq := atomic.AddUint64(&r.seq, 1) - 1
@@ -125,6 +135,12 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		codec:  codec,
 	}
 
+	releaseFunc := func(err error) {
+		if err = r.pool.Release(c, err); err != nil {
+			logger.Log(logger.ErrorLevel, "failed to release pool", err)
+		}
+	}
+
 	stream := &rpcStream{
 		id:       fmt.Sprintf("%v", seq),
 		context:  ctx,
@@ -132,7 +148,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		response: rsp,
 		codec:    codec,
 		closed:   make(chan bool),
-		release:  func(err error) { r.pool.Release(c, err) },
+		release:  releaseFunc,
 		sendEOS:  false,
 	}
 	// close the stream on exiting this function
@@ -144,7 +160,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- errors.InternalServerError("real.micro.client", "panic recovered: %v", r)
+				ch <- errors.InternalServerError(packageID, "panic recovered: %v", r)
 			}
 		}()
 
@@ -170,7 +186,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	case err := <-ch:
 		return err
 	case <-ctx.Done():
-		grr = errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		grr = errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	// set the stream error
@@ -216,7 +232,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 		var err error
 		cf, err = r.newCodec(req.ContentType())
 		if err != nil {
-			return nil, errors.InternalServerError("real.micro.client", err.Error())
+			return nil, errors.InternalServerError(packageID, err.Error())
 		}
 	}
 
@@ -230,7 +246,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 
 	c, err := r.opts.Transport.Dial(address, dOpts...)
 	if err != nil {
-		return nil, errors.InternalServerError("real.micro.client", "connection error: %v", err)
+		return nil, errors.InternalServerError(packageID, "connection error: %v", err)
 	}
 
 	// increment the sequence number
@@ -278,7 +294,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 	case err := <-ch:
 		grr = err
 	case <-ctx.Done():
-		grr = errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		grr = errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	if grr != nil {
@@ -288,7 +304,10 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 		stream.Unlock()
 
 		// close the stream
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			logger.Logf(logger.ErrorLevel, "failed to close stream: %v", err)
+		}
+
 		return nil, grr
 	}
 
@@ -296,6 +315,9 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 }
 
 func (r *rpcClient) Init(opts ...Option) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	size := r.opts.PoolSize
 	ttl := r.opts.PoolTTL
 	tr := r.opts.Transport
@@ -320,6 +342,9 @@ func (r *rpcClient) Init(opts ...Option) error {
 }
 
 func (r *rpcClient) Options() Options {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	return r.opts
 }
 
@@ -352,9 +377,9 @@ func (r *rpcClient) next(request Request, opts CallOptions) (selector.Next, erro
 	next, err := r.opts.Selector.Select(service, opts.SelectOptions...)
 	if err != nil {
 		if err == selector.ErrNotFound {
-			return nil, errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
+			return nil, errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 		}
-		return nil, errors.InternalServerError("real.micro.client", "error selecting %s node: %s", service, err.Error())
+		return nil, errors.InternalServerError(packageID, "error selecting %s node: %s", service, err.Error())
 	}
 
 	return next, nil
@@ -389,7 +414,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		return errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -401,12 +426,12 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		rcall = callOpts.CallWrappers[i-1](rcall)
 	}
 
-	// return errors.New("real.micro.client", "request timeout", 408)
+	// return errors.New(packageID, "request timeout", 408)
 	call := func(i int) error {
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return errors.InternalServerError("real.micro.client", "backoff error: %v", err.Error())
+			return errors.InternalServerError(packageID, "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -419,9 +444,9 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		service := request.Service()
 		if err != nil {
 			if err == selector.ErrNotFound {
-				return errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
+				return errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 			}
-			return errors.InternalServerError("real.micro.client", "error getting next %s node: %s", service, err.Error())
+			return errors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
 		}
 
 		// make the call
@@ -448,7 +473,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 
 		select {
 		case <-ctx.Done():
-			return errors.Timeout("real.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return errors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case err := <-ch:
 			// if the call succeeded lets bail early
 			if err == nil {
@@ -486,7 +511,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return nil, errors.Timeout("real.micro.client", fmt.Sprintf("%v", ctx.Err()))
+		return nil, errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -494,7 +519,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return nil, errors.InternalServerError("real.micro.client", "backoff error: %v", err.Error())
+			return nil, errors.InternalServerError(packageID, "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -506,9 +531,9 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		service := request.Service()
 		if err != nil {
 			if err == selector.ErrNotFound {
-				return nil, errors.InternalServerError("real.micro.client", "service %s: %s", service, err.Error())
+				return nil, errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 			}
-			return nil, errors.InternalServerError("real.micro.client", "error getting next %s node: %s", service, err.Error())
+			return nil, errors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
 		}
 
 		stream, err := r.stream(ctx, node, request, callOpts)
@@ -540,7 +565,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 
 		select {
 		case <-ctx.Done():
-			return nil, errors.Timeout("real.micro.client", fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return nil, errors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case rsp := <-ch:
 			// if the call succeeded lets bail early
 			if rsp.err == nil {
@@ -578,8 +603,8 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 
 	id := uuid.New().String()
 	md["Content-Type"] = msg.ContentType()
-	md["Micro-Topic"] = msg.Topic()
-	md["Micro-Id"] = id
+	md[headers.Message] = msg.Topic()
+	md[headers.ID] = id
 
 	// set the topic
 	topic := msg.Topic()
@@ -592,7 +617,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 	// encode message body
 	cf, err := r.newCodec(msg.ContentType())
 	if err != nil {
-		return errors.InternalServerError("real.micro.client", err.Error())
+		return errors.InternalServerError(packageID, err.Error())
 	}
 
 	var body []byte
@@ -608,11 +633,11 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 			Target: topic,
 			Type:   codec.Event,
 			Header: map[string]string{
-				"Micro-Id":    id,
-				"Micro-Topic": msg.Topic(),
+				headers.ID:      id,
+				headers.Message: msg.Topic(),
 			},
 		}, msg.Payload()); err != nil {
-			return errors.InternalServerError("real.micro.client", err.Error())
+			return errors.InternalServerError(packageID, err.Error())
 		}
 
 		// set the body
@@ -621,7 +646,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 
 	if !r.once.Load().(bool) {
 		if err = r.opts.Broker.Connect(); err != nil {
-			return errors.InternalServerError("real.micro.client", err.Error())
+			return errors.InternalServerError(packageID, err.Error())
 		}
 		r.once.Store(true)
 	}

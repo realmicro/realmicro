@@ -9,6 +9,7 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/realmicro/realmicro/metadata"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 // NewCache returns an initialised cache.
@@ -48,7 +49,7 @@ func (c *Cache) List() map[string]string {
 
 // key returns a hash for the context and request
 func key(ctx context.Context, req *Request) string {
-	ns, _ := metadata.Get(ctx, "Micro-Namespace")
+	ns, _ := metadata.Get(ctx, headers.Namespace)
 
 	bytes, _ := json.Marshal(map[string]interface{}{
 		"namespace": ns,

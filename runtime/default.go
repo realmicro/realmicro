@@ -22,18 +22,18 @@ import (
 const defaultNamespace = "default"
 
 type runtime struct {
-	sync.RWMutex
 	// options configure runtime
 	options Options
 	// used to stop the runtime
 	closed chan bool
 	// used to start new services
 	start chan *service
-	// indicates if we're running
-	running bool
 	// namespaces stores services grouped by namespace, e.g. namespaces["foo"]["real.micro.auth:latest"]
 	// would return the latest version of real.micro.auth from the foo namespace
 	namespaces map[string]map[string]*service
+	sync.RWMutex
+	// indicates if we're running
+	running bool
 }
 
 // NewRuntime creates new local runtime and returns it

@@ -13,6 +13,7 @@ import (
 	"github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/transport"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 const (
@@ -85,16 +86,16 @@ func getHeaders(m *codec.Message) {
 	}
 
 	// check error in header
-	m.Error = set(m.Error, "Micro-Error")
+	m.Error = set(m.Error, headers.Error)
 
 	// check endpoint in header
-	m.Endpoint = set(m.Endpoint, "Micro-Endpoint")
+	m.Endpoint = set(m.Endpoint, headers.Endpoint)
 
 	// check method in header
-	m.Method = set(m.Method, "Micro-Method")
+	m.Method = set(m.Method, headers.Method)
 
 	// set the request id
-	m.Id = set(m.Id, "Micro-Id")
+	m.Id = set(m.Id, headers.ID)
 }
 
 func setHeaders(m *codec.Message, stream string) {
@@ -105,14 +106,14 @@ func setHeaders(m *codec.Message, stream string) {
 		m.Header[hdr] = v
 	}
 
-	set("Micro-Id", m.Id)
-	set("Micro-Service", m.Target)
-	set("Micro-Method", m.Method)
-	set("Micro-Endpoint", m.Endpoint)
-	set("Micro-Error", m.Error)
+	set(headers.ID, m.Id)
+	set(headers.Request, m.Target)
+	set(headers.Method, m.Method)
+	set(headers.Endpoint, m.Endpoint)
+	set(headers.Error, m.Error)
 
 	if len(stream) > 0 {
-		set("Micro-Stream", stream)
+		set(headers.Stream, stream)
 	}
 }
 
@@ -126,7 +127,7 @@ func setupProtocol(msg *transport.Message, node *registry.Node) codec.NewCodec {
 	}
 
 	// processing topic publishing
-	if len(msg.Header["Micro-Topic"]) > 0 {
+	if len(msg.Header[headers.Message]) > 0 {
 		return nil
 	}
 

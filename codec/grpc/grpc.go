@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/realmicro/realmicro/codec"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 type Codec struct {
@@ -29,13 +30,13 @@ func (c *Codec) ReadHeader(m *codec.Message, t codec.MessageType) error {
 	// service method
 	path := m.Header[":path"]
 	if len(path) == 0 || path[0] != '/' {
-		m.Target = m.Header["Micro-Service"]
-		m.Endpoint = m.Header["Micro-Endpoint"]
+		m.Target = m.Header[headers.Request]
+		m.Endpoint = m.Header[headers.Endpoint]
 	} else {
 		// [ , a.package.Foo, Bar]
 		parts := strings.Split(path, "/")
 		if len(parts) != 3 {
-			return errors.New("Unknown request path")
+			return errors.New("unknown request path")
 		}
 		service := strings.Split(parts[1], ".")
 		m.Endpoint = strings.Join([]string{service[len(service)-1], parts[2]}, ".")

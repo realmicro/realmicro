@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"net"
 	"runtime/debug"
@@ -23,6 +23,7 @@ import (
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/transport"
+	"github.com/realmicro/realmicro/transport/headers"
 )
 
 type rpcServer struct {
@@ -101,7 +102,7 @@ func (s *rpcServer) HandleEvent(e broker.Event) error {
 	// Micro-Topic means a message
 
 	rpcMsg := &rpcMessage{
-		topic:       msg.Header["Micro-Topic"],
+		topic:       msg.Header[headers.Message],
 		contentType: ct,
 		payload:     &raw.Frame{Data: msg.Body},
 		codec:       cf,
@@ -133,23 +134,27 @@ func (s *rpcServer) HandleEvent(e broker.Event) error {
 func (s *rpcServer) ServeConn(sock transport.Socket) {
 	// global error tracking
 	var gerr error
+
 	// streams are multiplexed on Micro-Stream or Micro-Id header
 	pool := socket.NewPool()
 
-	// get global waitgroup
-	s.Lock()
-	gg := s.wg
-	s.Unlock()
-
-	// waitgroup to wait for processing to finish
-	wg := &waitGroup{
-		gg: gg,
-	}
+	// Waitgroup to wait for processing to finish
+	// A double waitgroup is used to block the global waitgroup incase it is
+	// empty, but only wait for the local routines to finish with the local waitgroup.
+	wg := NewWaitGroup(s.getWg())
 
 	defer func() {
-		// only wait if there's no error
-		if gerr == nil {
-			// wait till done
+		// Only wait if there's no error
+		if gerr != nil {
+			select {
+			case <-s.exit:
+			default:
+				// EOF is expected if the client closes the connection
+				if !errors.Is(gerr, io.EOF) {
+					logger.Logf(logger.ErrorLevel, "error while serving connection: %v", gerr)
+				}
+			}
+		} else {
 			wg.Wait()
 		}
 
@@ -157,7 +162,9 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		pool.Close()
 
 		// close underlying socket
-		sock.Close()
+		if err := sock.Close(); err != nil {
+			logger.Logf(logger.ErrorLevel, "failed to close socket: %v", err)
+		}
 
 		// recover any panics
 		if r := recover(); r != nil {
@@ -169,25 +176,30 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 	}()
 
 	for {
-		var msg transport.Message
+		msg := transport.Message{
+			Header: make(map[string]string),
+		}
+
 		// process inbound messages one at a time
 		if err := sock.Recv(&msg); err != nil {
 			// set a global error and return
 			// we're saying we essentially can't
 			// use the socket anymore
 			gerr = err
+
 			return
 		}
 
 		// check the message header for
 		// Micro-Service is a request
 		// Micro-Topic is a message
-		if t := msg.Header["Micro-Topic"]; len(t) > 0 {
+		if t := msg.Header[headers.Message]; len(t) > 0 {
 			// process the event
 			ev := newEvent(msg)
-			// TODO: handle the error event
+
 			if err := s.HandleEvent(ev); err != nil {
-				msg.Header["Micro-Error"] = err.Error()
+				msg.Header[headers.Error] = err.Error()
+				logger.Logf(logger.ErrorLevel, "failed to handle event: %v", err)
 			}
 			// write back some 200
 			if err := sock.Send(&transport.Message{
@@ -205,32 +217,28 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// use Micro-Stream as the stream identifier
 		// in the event its blank we'll always process
 		// on the same socket
-		id := msg.Header["Micro-Stream"]
+		var (
+			stream bool
+			id     string
+		)
 
-		// if there's no stream id then its a standard request
-		// use the Micro-Id
-		if len(id) == 0 {
-			id = msg.Header["Micro-Id"]
-		}
-
-		// check stream id
-		var stream bool
-
-		if v := getHeader("Micro-Stream", msg.Header); len(v) > 0 {
+		if v := getHeader(headers.Stream, msg.Header); len(v) > 0 {
+			id = v
 			stream = true
+		} else {
+			// if there's no stream id then its a standard request
+			// use the Micro-Id
+			id = msg.Header[headers.ID]
 		}
 
 		// check if we have an existing socket
 		psock, ok := pool.Get(id)
 
 		// if we don't have a socket and its a stream
-		if !ok && stream {
-			// check if its a last stream EOS error
-			err := msg.Header["Micro-Error"]
-			if err == lastStreamResponseError.Error() {
-				pool.Release(psock)
-				continue
-			}
+		// check if its a last stream EOS error
+		if !ok && stream && msg.Header[headers.Error] == errLastStreamResponse.Error() {
+			pool.Release(psock)
+			continue
 		}
 
 		// got an existing socket already
@@ -257,7 +265,9 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		psock.SetRemote(sock.Remote())
 
 		// load the socket with the current message
-		psock.Accept(&msg)
+		if err := psock.Accept(&msg); err != nil {
+			logger.Logf(logger.ErrorLevel, "Socket failed to accept message: %v", err)
+		}
 
 		// now walk the usual path
 
@@ -326,9 +336,9 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 
 		// internal request
 		request := &rpcRequest{
-			service:     getHeader("Micro-Service", msg.Header),
-			method:      getHeader("Micro-Method", msg.Header),
-			endpoint:    getHeader("Micro-Endpoint", msg.Header),
+			service:     getHeader(headers.Request, msg.Header),
+			method:      getHeader(headers.Method, msg.Header),
+			endpoint:    getHeader(headers.Endpoint, msg.Header),
 			contentType: ct,
 			codec:       rcodec,
 			header:      msg.Header,
@@ -368,13 +378,15 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		wg.Add(2)
 
 		// process the outbound messages from the socket
-		go func(id string, psock *socket.Socket) {
+		go func(psock *socket.Socket) {
 			defer func() {
 				// TODO: don't hack this but if its grpc just break out of the stream
 				// We do this because the underlying connection is h2 and its a stream
 				switch protocol {
 				case "grpc":
-					sock.Close()
+					if err := sock.Close(); err != nil {
+						logger.Logf(logger.ErrorLevel, "Failed to close socket: %v", err)
+					}
 				}
 				// release the socket
 				pool.Release(psock)
@@ -402,10 +414,10 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 					return
 				}
 			}
-		}(id, psock)
+		}(psock)
 
 		// serve the request in a go routine as this may be a stream
-		go func(id string, psock *socket.Socket) {
+		go func(psock *socket.Socket) {
 			defer func() {
 				// release the socket
 				pool.Release(psock)
@@ -430,32 +442,15 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 
 				// if the server request is an EOS error we let the socket know
 				// sometimes the socket is already closed on the other side, so we can ignore that error
-				alreadyClosed := serveRequestError == lastStreamResponseError && writeError == io.EOF
+				alreadyClosed := errors.Is(serveRequestError, errLastStreamResponse) && errors.Is(writeError, io.EOF)
 
 				// could not write error response
 				if writeError != nil && !alreadyClosed {
 					logger.Debugf("rpc: unable to write error response: %v", writeError)
 				}
 			}
-		}(id, psock)
+		}(psock)
 	}
-}
-
-func (s *rpcServer) newCodec(contentType string) (codec.NewCodec, error) {
-	if cf, ok := s.opts.Codecs[contentType]; ok {
-		return cf, nil
-	}
-	if cf, ok := DefaultCodecs[contentType]; ok {
-		return cf, nil
-	}
-	return nil, fmt.Errorf("Unsupported Content-Type: %s", contentType)
-}
-
-func (s *rpcServer) Options() Options {
-	s.RLock()
-	opts := s.opts
-	s.RUnlock()
-	return opts
 }
 
 func (s *rpcServer) Init(opts ...Option) error {

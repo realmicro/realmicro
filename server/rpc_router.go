@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	lastStreamResponseError = errors.New("EOS")
+	errLastStreamResponse = errors.New("EOS")
 
 	// Precompute the reflect type for error. Can't use error directly
 	// because Typeof takes an empty interface value. This is annoying.
@@ -264,7 +264,7 @@ func (s *service) call(ctx context.Context, router *router, sending *sync.Mutex,
 			return nil
 		} else {
 			// no error, we send the special EOS error
-			return lastStreamResponseError
+			return errLastStreamResponse
 		}
 	}
 
