@@ -12,9 +12,10 @@
 - [ ] realmicro Common Library
   - [X] Service Group
   - [X] Stream
-- [ ] realmicro Broker
+- [ ] realmicro Broker Plugin 
   - [X] [asynq](https://github.com/hibiken/asynq)
   - [X] redis use Pub And Sub
+  - [X] kafka
 - [ ] realmicro CTL
 - [ ] realmicro More Examples
   - [ ] Breaker Wrapper Example
