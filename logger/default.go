@@ -23,8 +23,8 @@ func init() {
 }
 
 type defaultLogger struct {
-	sync.RWMutex
 	opts Options
+	sync.RWMutex
 }
 
 // Init (opts...) should only overwrite provided options
@@ -177,9 +177,11 @@ func (l *defaultLogger) Logf(level Level, format string, v ...interface{}) {
 func (l *defaultLogger) Options() Options {
 	// not guard against options Context values
 	l.RLock()
+	defer l.RUnlock()
+
 	opts := l.opts
 	opts.Fields = copyFields(l.opts.Fields)
-	l.RUnlock()
+
 	return opts
 }
 

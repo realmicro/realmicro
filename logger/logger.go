@@ -4,6 +4,9 @@ package logger
 var (
 	// DefaultLogger Default logger
 	DefaultLogger Logger = NewLogger()
+
+	// Default logger helper.
+	DefaultHelper *Helper = NewHelper(DefaultLogger)
 )
 
 // Logger is a generic logging interface
