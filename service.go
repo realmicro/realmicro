@@ -166,9 +166,7 @@ func (s *service) Run() (err error) {
 		}()
 	}
 
-	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("Starting [service] %s", s.Name())
-	}
+	logger.Logf(logger.InfoLevel, "Starting [service] %s", s.Name())
 
 	if err = s.Start(); err != nil {
 		return err
