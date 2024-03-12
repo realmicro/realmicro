@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/client"
@@ -12,9 +13,11 @@ import (
 	"github.com/realmicro/realmicro/registry/etcd"
 )
 
-func call(i int, c client.Client) {
+func call(n string, i int, c client.Client) {
 	// Create new request to service go.micro.srv.example, method Example.Call
-	req := c.NewRequest("helloworld", "Greeter.Hello", &greeter.Request{})
+	req := c.NewRequest("helloworld", "Greeter.Hello", &greeter.Request{
+		Name: fmt.Sprintf("%s-%d", n, i),
+	})
 
 	// create context with metadata
 	ctx := metadata.NewContext(context.Background(), map[string]string{
@@ -38,7 +41,16 @@ func main() {
 	service.Init()
 
 	fmt.Println("\n--- Call example ---")
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			call("g1", i, service.Client())
+		}
+	}()
+
 	for i := 0; i < 10; i++ {
-		call(i, service.Client())
+		call("main", i, service.Client())
 	}
+
+	time.Sleep(time.Second * 10)
 }
