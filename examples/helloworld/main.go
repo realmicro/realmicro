@@ -25,6 +25,7 @@ type TestInfo struct {
 type Greeter struct{}
 
 func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.Response) error {
+	logger.Infof("Received: %v", req.Name)
 	rsp.Greeting = "Hello " + req.Name
 	if cfg != nil {
 		logger.Info("config data:", cfg.Map())
