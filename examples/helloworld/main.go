@@ -42,7 +42,7 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 }
 
 func main() {
-	serviceName := "helloworld"
+	serviceName := "real.micro.helloworld"
 
 	logger.DefaultLogger = mlogrus.NewLogger(mlogrus.WithJSONFormatter(&logrus.JSONFormatter{}))
 	logger.Init(logger.WithLevel(logger.TraceLevel))
