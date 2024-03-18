@@ -379,7 +379,7 @@ func (router *router) readHeader(cc codec.Reader) (service *service, mtype *meth
 	err = cc.ReadHeader(msg, msg.Type)
 	if err != nil {
 		req = nil
-		if err == io.EOF || err == io.ErrUnexpectedEOF {
+		if err == io.EOF || errors.Is(err, io.ErrUnexpectedEOF) {
 			return
 		}
 		err = errors.New("rpc: router cannot decode request: " + err.Error())

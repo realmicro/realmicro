@@ -5,27 +5,27 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 
+	"github.com/gorilla/handlers"
 	"github.com/realmicro/realmicro/api/server"
 	"github.com/realmicro/realmicro/api/server/cors"
-	"github.com/realmicro/realmicro/logger"
+	log "github.com/realmicro/realmicro/logger"
 )
 
 type httpServer struct {
-	mux  *http.ServeMux
 	opts server.Options
 
-	mtx     sync.RWMutex
-	address string
+	mux     *http.ServeMux
 	exit    chan chan error
+	address string
+
+	mtx sync.RWMutex
 }
 
 func NewServer(address string, opts ...server.Option) server.Server {
-	var options server.Options
-	for _, o := range opts {
-		o(&options)
-	}
+	options := server.NewOptions(opts...)
 
 	return &httpServer{
 		opts:    options,
@@ -49,6 +49,8 @@ func (s *httpServer) Init(opts ...server.Option) error {
 }
 
 func (s *httpServer) Handle(path string, handler http.Handler) {
+	// TODO: move this stuff out to one place with ServeHTTP
+
 	// apply the wrappers, e.g. auth
 	for _, wrapper := range s.opts.Wrappers {
 		handler = wrapper(handler)
@@ -60,16 +62,20 @@ func (s *httpServer) Handle(path string, handler http.Handler) {
 	}
 
 	// wrap with logger
-	//handler = handlers.CombinedLoggingHandler(os.Stdout, handler)
+	handler = handlers.CombinedLoggingHandler(os.Stdout, handler)
 
 	s.mux.Handle(path, handler)
 }
 
 func (s *httpServer) Start() error {
+	logger := s.opts.Logger
 	var l net.Listener
 	var err error
 
-	if s.opts.EnableTLS && s.opts.TLSConfig != nil {
+	if s.opts.EnableACME && s.opts.ACMEProvider != nil {
+		// should we check the address to make sure its using :443?
+		l, err = s.opts.ACMEProvider.Listen(s.opts.ACMEHosts...)
+	} else if s.opts.EnableTLS && s.opts.TLSConfig != nil {
 		l, err = tls.Listen("tcp", s.address, s.opts.TLSConfig)
 	} else {
 		// otherwise plain listen
@@ -79,18 +85,17 @@ func (s *httpServer) Start() error {
 		return err
 	}
 
-	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("HTTP API Listening on %s", l.Addr().String())
-	}
+	logger.Logf(log.InfoLevel, "HTTP API Listening on %s", l.Addr().String())
 
 	s.mtx.Lock()
 	s.address = l.Addr().String()
 	s.mtx.Unlock()
 
 	go func() {
-		if err = http.Serve(l, s.mux); err != nil {
+		if err := http.Serve(l, s.mux); err != nil {
 			// temporary fix
-			logger.Fatal(err)
+			// logger.Log(log.FatalLevel, err)
+			logger.Log(log.ErrorLevel, err)
 		}
 	}()
 

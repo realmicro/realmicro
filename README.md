@@ -18,6 +18,7 @@
   - [X] kafka
 - [ ] realmicro CTL
 - [ ] realmicro More Examples
+  - [ ] API Gateway Example
   - [ ] Breaker Wrapper Example
   - [ ] RateLimiter Wrapper Example
   - [X] Config Example
