@@ -1,7 +1,7 @@
 # REALMICRO
 
 ### TODO LIST
-- [ ] realmicro API Gateway
+- [X] realmicro API Gateway
 - [ ] realmicro Admin Dashboard
   - [ ] Service List And Description
   - [ ] Service Call Test
@@ -18,11 +18,11 @@
   - [X] kafka
 - [ ] realmicro CTL
 - [ ] realmicro More Examples
-  - [ ] API Gateway Example
   - [ ] Breaker Wrapper Example
   - [ ] RateLimiter Wrapper Example
   - [X] Config Example
   - [X] Broker Example
+  - [X] API Gateway Example
 - [ ] realmicro More Wrappers
   - [ ] Metrics Wrapper
   - [ ] Trace Wrapper

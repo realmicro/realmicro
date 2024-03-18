@@ -17,7 +17,6 @@ import (
 	"github.com/realmicro/realmicro/server"
 	"github.com/realmicro/realmicro/store"
 	"github.com/realmicro/realmicro/transport"
-	//"github.com/urfave/cli/v2"
 )
 
 // Options for realmicro service
@@ -50,10 +49,9 @@ type Options struct {
 
 func newOptions(opts ...Option) Options {
 	opt := Options{
-		Auth:   auth.DefaultAuth,
-		Broker: broker.DefaultBroker,
-		Cache:  cache.DefaultCache,
-		//Cmd:       cmd.DefaultCmd,
+		Auth:      auth.DefaultAuth,
+		Broker:    broker.DefaultBroker,
+		Cache:     cache.DefaultCache,
 		Config:    config.DefaultConfig,
 		Client:    client.DefaultClient,
 		Server:    server.DefaultServer,
@@ -87,12 +85,6 @@ func Cache(c cache.Cache) Option {
 		o.Cache = c
 	}
 }
-
-//func Cmd(c cmd.Cmd) Option {
-//	return func(o *Options) {
-//		o.Cmd = c
-//	}
-//}
 
 // Client to be used for service
 func Client(c client.Client) Option {
