@@ -24,7 +24,7 @@ func main() {
 	)
 
 	// Create new request to service go.micro.srv.example, method Example.Call
-	req := c.NewRequest("helloworld", "Greeter.Hello", &greeter.Request{
+	req := c.NewRequest("real.micro.helloworld", "Greeter.Hello", &greeter.Request{
 		Name: "BreakerError",
 	})
 
