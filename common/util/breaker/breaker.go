@@ -179,11 +179,8 @@ func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error,
 }
 
 func (lt loggedThrottle) logError(err error) error {
-	if err == ErrServiceUnavailable {
+	if errors.Is(err, ErrServiceUnavailable) {
 		// if circuit open, not possible to have empty error window
-		//stat.Report(fmt.Sprintf(
-		//	"proc(%s/%d), callee: %s, breaker is open and requests dropped\nlast errors:\n%s",
-		//	proc.ProcessName(), proc.Pid(), lt.name, lt.errWin))
 		logger.Errorf("proc(%s/%d), callee: %s, breaker is open and requests dropped\nlast errors:\n%s",
 			proc.ProcessName(), proc.Pid(), lt.name, lt.errWin)
 	}

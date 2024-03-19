@@ -37,7 +37,7 @@ func main() {
 	rsp := &greeter.Response{}
 
 	// Force to point of trip
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 5; i++ {
 		c.Call(ctx, req, rsp)
 	}
 
