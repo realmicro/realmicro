@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/config"
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
-	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
+	"github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
 	mlogrus "github.com/realmicro/realmicro/logger/logrus"
 	"github.com/realmicro/realmicro/registry"
@@ -26,6 +27,9 @@ type Greeter struct{}
 
 func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.Response) error {
 	logger.Infof("Received: %v", req.Name)
+	if req.Name == "BreakerError" {
+		return errors.New("breaker tripped")
+	}
 	rsp.Greeting = "Hello " + req.Name
 	if cfg != nil {
 		logger.Info("config data:", cfg.Map())
@@ -45,7 +49,7 @@ func main() {
 	serviceName := "real.micro.helloworld"
 
 	logger.DefaultLogger = mlogrus.NewLogger(mlogrus.WithJSONFormatter(&logrus.JSONFormatter{}))
-	logger.Init(logger.WithLevel(logger.TraceLevel))
+	logger.Init(logger.WithLevel(logger.InfoLevel))
 
 	logger.Logf(logger.InfoLevel, "Example Name: %s", serviceName)
 
