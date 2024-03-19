@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/config"
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
+	"github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
 	mlogrus "github.com/realmicro/realmicro/logger/logrus"
@@ -28,7 +28,7 @@ type Greeter struct{}
 func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.Response) error {
 	logger.Infof("Received: %v", req.Name)
 	if req.Name == "BreakerError" {
-		return errors.New("breaker tripped")
+		return errors.New("", "breaker tripped", 502)
 	}
 	rsp.Greeting = "Hello " + req.Name
 	if cfg != nil {
