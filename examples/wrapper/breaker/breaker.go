@@ -37,10 +37,13 @@ func main() {
 	rsp := &greeter.Response{}
 
 	// Force to point of trip
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 10; i++ {
 		c.Call(ctx, req, rsp)
 	}
 
+	req = c.NewRequest("real.micro.helloworld", "Greeter.Hello", &greeter.Request{
+		Name: "World",
+	})
 	err := c.Call(ctx, req, rsp)
 	if err == nil {
 		fmt.Println("Expecting tripped breaker, got nil error")
