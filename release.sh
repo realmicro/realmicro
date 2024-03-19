@@ -20,12 +20,14 @@ fi
 
 TAG_REGEX="^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
 if ! [[ "${TAG}" =~ ${TAG_REGEX} ]]; then
+    # shellcheck disable=SC2059
     printf "TAG is not valid: ${TAG}\n\n"
     exit 1
 fi
 
 TAG_FOUND=`git tag --list ${TAG}`
 if [[ ${TAG_FOUND} = ${TAG} ]] ; then
+    # shellcheck disable=SC2059
     printf "tag ${TAG} already exists\n\n"
     exit 1
 fi
