@@ -2,7 +2,6 @@ package realbreaker
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/realmicro/realmicro/client"
@@ -51,8 +50,6 @@ func (c *clientWrapper) Call(ctx context.Context, req client.Request, rsp interf
 		promise.Accept()
 		return nil
 	}
-
-	fmt.Println("realbreaker === ", err.Error())
 
 	merr := errors.Parse(err.Error())
 	switch {
