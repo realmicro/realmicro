@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/realmicro/realmicro/cache"
+	"github.com/redis/go-redis/v9"
 )
 
 // NewCache returns a new redis cache.

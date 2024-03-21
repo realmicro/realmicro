@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 )
 
 const (

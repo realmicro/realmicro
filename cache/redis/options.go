@@ -3,8 +3,8 @@ package redis
 import (
 	"context"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/realmicro/realmicro/cache"
+	"github.com/redis/go-redis/v9"
 )
 
 type redisOptionsContextKey struct{}

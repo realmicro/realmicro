@@ -18,7 +18,7 @@
   - [X] kafka
 - [ ] realmicro CTL
 - [ ] realmicro More Examples
-  - [ ] Breaker Wrapper Example
+  - [X] Breaker Wrapper Example
   - [ ] RateLimiter Wrapper Example
   - [X] Config Example
   - [X] Broker Example

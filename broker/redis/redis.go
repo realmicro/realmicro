@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/codec"
 	"github.com/realmicro/realmicro/codec/json"
 	"github.com/realmicro/realmicro/common/stores/redis"
+	red "github.com/redis/go-redis/v9"
 )
 
 // publication is an internal publication for the Redis broker.

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/realmicro/realmicro/common/util/breaker"
 	"github.com/realmicro/realmicro/common/util/mapping"
+	red "github.com/redis/go-redis/v9"
 )
 
 const (
@@ -61,6 +61,10 @@ type (
 	IntCmd = red.IntCmd
 	// FloatCmd is an alias of redis.FloatCmd.
 	FloatCmd = red.FloatCmd
+	// StringCmd is an alias of redis.StringCmd.
+	StringCmd = red.StringCmd
+	// Script is an alias of redis.Script.
+	Script = red.Script
 )
 
 func acceptable(err error) bool {
@@ -76,6 +80,11 @@ func New(opts ...Option) *Redis {
 	}
 	r.brk = breaker.New(breaker.WithName(r.String()))
 	return r
+}
+
+// NewScript returns a new Script instance.
+func NewScript(script string) *Script {
+	return red.NewScript(script)
 }
 
 // String returns the string representation of s.
@@ -1176,6 +1185,16 @@ func (s *Redis) ScriptLoad(ctx context.Context, script string) (string, error) {
 	return conn.ScriptLoad(ctx, script).Result()
 }
 
+// ScriptRun is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRun(ctx context.Context, script *Script, keys []string, args ...interface{}) (interface{}, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return script.Run(ctx, conn, keys, args...).Result()
+}
+
 // Set is the implementation of redis set command.
 func (s *Redis) Set(ctx context.Context, key, value string) error {
 	return s.brk.DoWithAcceptable(func() error {
@@ -1447,7 +1466,7 @@ func (s *Redis) Zadd(ctx context.Context, key string, score int64, value string)
 			return err
 		}
 
-		v, err := conn.ZAdd(ctx, key, &red.Z{
+		v, err := conn.ZAdd(ctx, key, red.Z{
 			Score:  float64(score),
 			Member: value,
 		}).Result()
@@ -1470,9 +1489,9 @@ func (s *Redis) Zadds(ctx context.Context, key string, ps ...Pair) (val int64, e
 			return err
 		}
 
-		var zs []*red.Z
+		var zs []red.Z
 		for _, p := range ps {
-			z := &red.Z{Score: float64(p.Score), Member: p.Key}
+			z := red.Z{Score: float64(p.Score), Member: p.Key}
 			zs = append(zs, z)
 		}
 

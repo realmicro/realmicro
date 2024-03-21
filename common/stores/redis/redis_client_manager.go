@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"io"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/realmicro/realmicro/common/util/sync"
+	red "github.com/redis/go-redis/v9"
 )
 
 const (
