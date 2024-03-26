@@ -35,7 +35,7 @@ type Options struct {
 
 // Request is the request of the generic `api-client` call.
 type Request struct {
-	// eg. "go.micro.srv.greeter"
+	// eg. "real.micro.srv.greeter"
 	Service string `json:"service"`
 	// eg. "Say.Hello"
 	Endpoint string `json:"endpoint"`
@@ -51,7 +51,7 @@ type Response struct {
 	Detail string `json:"detail"`
 	Status string `json:"status"`
 	// error fields. Error json example
-	// {"id":"go.micro.client","code":500,"detail":"malformed method name: \"\"","status":"Internal Server Error"}
+	// {"id":"real.micro.client","code":500,"detail":"malformed method name: \"\"","status":"Internal Server Error"}
 	Code int `json:"code"`
 }
 
@@ -106,7 +106,7 @@ func (client *Client) SetTimeout(d time.Duration) {
 
 // Call enables you to access any endpoint of any service on Micro.
 func (client *Client) Call(service, endpoint string, request, response interface{}) error {
-	// example curl: curl -XPOST -d '{"service": "go.micro.srv.greeter", "endpoint": "Say.Hello"}'
+	// example curl: curl -XPOST -d '{"service": "real.micro.helloworld", "endpoint": "Greeter.Hello"}'
 	//  -H 'Content-Type: application/json' http://localhost:8080/client {"body":"eyJtc2ciOiJIZWxsbyAifQ=="}
 	uri, err := url.Parse(client.options.Address)
 	if err != nil {

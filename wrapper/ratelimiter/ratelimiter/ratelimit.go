@@ -35,7 +35,7 @@ func (c *clientWrapper) Call(ctx context.Context, req client.Request, rsp interf
 
 // NewClientWrapper takes a rate limiter and wait flag and returns a client Wrapper.
 func NewClientWrapper(b *ratelimit.Bucket, wait bool) client.Wrapper {
-	fn := limit(b, wait, "go.micro.client")
+	fn := limit(b, wait, "real.micro.client")
 
 	return func(c client.Client) client.Client {
 		return &clientWrapper{fn, c}
@@ -44,7 +44,7 @@ func NewClientWrapper(b *ratelimit.Bucket, wait bool) client.Wrapper {
 
 // NewHandlerWrapper takes a rate limiter and wait flag and returns a client Wrapper.
 func NewHandlerWrapper(b *ratelimit.Bucket, wait bool) server.HandlerWrapper {
-	fn := limit(b, wait, "go.micro.server")
+	fn := limit(b, wait, "real.micro.server")
 
 	return func(h server.HandlerFunc) server.HandlerFunc {
 		return func(ctx context.Context, req server.Request, rsp interface{}) error {

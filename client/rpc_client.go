@@ -170,7 +170,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 			return
 		}
 
-		// recv request
+		// recv response
 		if err := stream.Recv(resp); err != nil {
 			ch <- err
 			return

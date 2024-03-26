@@ -7,14 +7,14 @@ import (
 )
 
 func TestFromError(t *testing.T) {
-	err := NotFound("go.micro.test", "%s", "example")
+	err := NotFound("real.micro.test", "%s", "example")
 	merr := FromError(err)
-	if merr.Id != "go.micro.test" || merr.Code != 404 {
+	if merr.Id != "real.micro.test" || merr.Code != 404 {
 		t.Fatalf("invalid conversation %v != %v", err, merr)
 	}
 	err = er.New(err.Error())
 	merr = FromError(err)
-	if merr.Id != "go.micro.test" || merr.Code != 404 {
+	if merr.Id != "real.micro.test" || merr.Code != 404 {
 		t.Fatalf("invalid conversation %v != %v", err, merr)
 	}
 	merr = FromError(nil)
@@ -80,12 +80,12 @@ func TestErrors(t *testing.T) {
 }
 
 func TestAs(t *testing.T) {
-	err := NotFound("go.micro.test", "%s", "example")
+	err := NotFound("real.micro.test", "%s", "example")
 	merr, match := As(err)
 	if !match {
 		t.Fatalf("%v should convert to *Error", err)
 	}
-	if merr.Id != "go.micro.test" || merr.Code != 404 || merr.Detail != "example" {
+	if merr.Id != "real.micro.test" || merr.Code != 404 || merr.Detail != "example" {
 		t.Fatalf("invalid conversation %v != %v", err, merr)
 	}
 	err = er.New(err.Error())
