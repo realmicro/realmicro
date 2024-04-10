@@ -88,7 +88,8 @@ func TestBroker(t *testing.T) {
 		publish(t, b, topic, m1)
 
 		m2 := &broker.Message{
-			Body: []byte("partition 0 - message"),
+			Header: map[string]string{"Content-Type": "application/json", "Env": "test"},
+			Body:   []byte("{\"partition\":0,\"msg\":\"message\"}"),
 		}
 		publish(t, b, topic, m2, PublishPartition(0))
 
