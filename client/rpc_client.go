@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/codec"
 	raw "github.com/realmicro/realmicro/codec/bytes"
 	"github.com/realmicro/realmicro/common/util/buf"
 	"github.com/realmicro/realmicro/common/util/net"
 	"github.com/realmicro/realmicro/common/util/pool"
-	"github.com/realmicro/realmicro/errors"
+	merrors "github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
@@ -67,9 +68,11 @@ func (r *rpcClient) newCodec(contentType string) (codec.NewCodec, error) {
 	if c, ok := r.opts.Codecs[contentType]; ok {
 		return c, nil
 	}
+
 	if cf, ok := DefaultCodecs[contentType]; ok {
 		return cf, nil
 	}
+
 	return nil, fmt.Errorf("unsupported Content-Type: %s", contentType)
 }
 
@@ -86,8 +89,9 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	md, ok := metadata.FromContext(ctx)
 	if ok {
 		for k, v := range md {
-			// don't copy Micro-Topic header, that used for pub/sub
-			// this fix case then client uses the same context that received in subscriber
+			// Don't copy Micro-Topic header, that is used for pub/sub
+			// this is fixes the case when the client uses the same context that
+			// is received in the subscriber.
 			if k == headers.Message {
 				continue
 			}
@@ -95,8 +99,15 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		}
 	}
 
+	// Set connection timeout for single requests to the server. Should be > 0
+	// as otherwise requests can't be made.
+	cTimeout := opts.ConnectionTimeout
+	if cTimeout == 0 {
+		cTimeout = DefaultConnectionTimeout
+	}
+
 	// set timeout in nanoseconds
-	msg.Header["Timeout"] = fmt.Sprintf("%d", opts.RequestTimeout)
+	msg.Header["Timeout"] = fmt.Sprintf("%d", cTimeout)
 	// set the content type for the request
 	msg.Header["Content-Type"] = req.ContentType()
 	// set the accept header
@@ -109,8 +120,9 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	if cf == nil {
 		var err error
 		cf, err = r.newCodec(req.ContentType())
+
 		if err != nil {
-			return errors.InternalServerError(packageID, err.Error())
+			return merrors.InternalServerError(packageID, err.Error())
 		}
 	}
 
@@ -122,9 +134,16 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		dOpts = append(dOpts, transport.WithTimeout(opts.DialTimeout))
 	}
 
+	if opts.ConnClose {
+		dOpts = append(dOpts, transport.WithConnClose())
+	}
+
 	c, err := r.pool.Get(address, dOpts...)
 	if err != nil {
-		return errors.InternalServerError(packageID, "connection error: %v", err)
+		if c == nil {
+			return merrors.InternalServerError(packageID, "connection error: %v", err)
+		}
+		logger.Log(logger.ErrorLevel, "failed to close pool", err)
 	}
 
 	seq := atomic.AddUint64(&r.seq, 1) - 1
@@ -152,7 +171,11 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 		sendEOS:  false,
 	}
 	// close the stream on exiting this function
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			logger.Log(logger.ErrorLevel, "failed to close stream", err)
+		}
+	}()
 
 	// wait for error response
 	ch := make(chan error, 1)
@@ -160,7 +183,7 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- errors.InternalServerError(packageID, "panic recovered: %v", r)
+				ch <- merrors.InternalServerError(packageID, "panic recovered: %v", r)
 			}
 		}()
 
@@ -185,8 +208,8 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 	select {
 	case err := <-ch:
 		return err
-	case <-ctx.Done():
-		grr = errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
+	case <-time.After(cTimeout):
+		grr = merrors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	// set the stream error
@@ -225,14 +248,15 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 	msg.Header["Accept"] = req.ContentType()
 
 	// set old codecs
-	cf := setupProtocol(msg, node)
+	nCodec := setupProtocol(msg, node)
 
 	// no codec specified
-	if cf == nil {
+	if nCodec == nil {
 		var err error
-		cf, err = r.newCodec(req.ContentType())
+
+		nCodec, err = r.newCodec(req.ContentType())
 		if err != nil {
-			return nil, errors.InternalServerError(packageID, err.Error())
+			return nil, merrors.InternalServerError(packageID, err.Error())
 		}
 	}
 
@@ -246,7 +270,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 
 	c, err := r.opts.Transport.Dial(address, dOpts...)
 	if err != nil {
-		return nil, errors.InternalServerError(packageID, "connection error: %v", err)
+		return nil, merrors.InternalServerError(packageID, "connection error: %v", err)
 	}
 
 	// increment the sequence number
@@ -254,7 +278,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 	id := fmt.Sprintf("%v", seq)
 
 	// create codec with stream id
-	codec := newRpcCodec(msg, c, cf, id)
+	codec := newRpcCodec(msg, c, nCodec, id)
 
 	rsp := &rpcResponse{
 		socket: c,
@@ -294,7 +318,7 @@ func (r *rpcClient) stream(ctx context.Context, node *registry.Node, req Request
 	case err := <-ch:
 		grr = err
 	case <-ctx.Done():
-		grr = errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
+		grr = merrors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	}
 
 	if grr != nil {
@@ -329,7 +353,9 @@ func (r *rpcClient) Init(opts ...Option) error {
 	// update pool configuration if the options changed
 	if size != r.opts.PoolSize || ttl != r.opts.PoolTTL || tr != r.opts.Transport {
 		// close existing pool
-		r.pool.Close()
+		if err := r.pool.Close(); err != nil {
+			return errors.Wrap(err, "failed to close pool")
+		}
 		// create new pool
 		r.pool = pool.NewPool(
 			pool.Size(r.opts.PoolSize),
@@ -376,16 +402,22 @@ func (r *rpcClient) next(request Request, opts CallOptions) (selector.Next, erro
 	// get next nodes from the selector
 	next, err := r.opts.Selector.Select(service, opts.SelectOptions...)
 	if err != nil {
-		if err == selector.ErrNotFound {
-			return nil, errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
+		if errors.Is(err, selector.ErrNotFound) {
+			return nil, merrors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 		}
-		return nil, errors.InternalServerError(packageID, "error selecting %s node: %s", service, err.Error())
+
+		return nil, merrors.InternalServerError(packageID, "error selecting %s node: %s", service, err.Error())
 	}
 
 	return next, nil
 }
 
 func (r *rpcClient) Call(ctx context.Context, request Request, response interface{}, opts ...CallOption) error {
+	// TODO: further validate these mutex locks. full lock would prevent
+	// parallel calls. Maybe we can set individual locks for sections.
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	// make a copy of call opts
 	callOpts := r.opts.CallOptions
 	for _, opt := range opts {
@@ -403,9 +435,10 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		// no deadline so we create a new one
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, callOpts.RequestTimeout)
+
 		defer cancel()
 	} else {
-		// got a deadline so no need to setup context
+		// got a deadline so no need to set up context,
 		// but we need to set the timeout we pass along
 		opt := WithRequestTimeout(time.Until(d))
 		opt(&callOpts)
@@ -414,7 +447,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
+		return merrors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -431,7 +464,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return errors.InternalServerError(packageID, "backoff error: %v", err.Error())
+			return merrors.InternalServerError(packageID, "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -442,16 +475,19 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 		// select next node
 		node, err := next()
 		service := request.Service()
+
 		if err != nil {
-			if err == selector.ErrNotFound {
-				return errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
+			if errors.Is(err, selector.ErrNotFound) {
+				return merrors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 			}
-			return errors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
+
+			return merrors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
 		}
 
 		// make the call
 		err = rcall(ctx, node, request, response, callOpts)
 		r.opts.Selector.Mark(service, node, err)
+
 		return err
 	}
 
@@ -459,11 +495,12 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 	retries := callOpts.Retries
 
 	// disable retries when using a proxy
-	if _, _, ok := net.Proxy(request.Service(), callOpts.Address); ok {
-		retries = 0
-	}
+	//if _, _, ok := net.Proxy(request.Service(), callOpts.Address); ok {
+	//	retries = 0
+	//}
 
 	ch := make(chan error, retries+1)
+
 	var gerr error
 
 	for i := 0; i <= retries; i++ {
@@ -473,7 +510,7 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 
 		select {
 		case <-ctx.Done():
-			return errors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return merrors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case err := <-ch:
 			// if the call succeeded lets bail early
 			if err == nil {
@@ -497,6 +534,9 @@ func (r *rpcClient) Call(ctx context.Context, request Request, response interfac
 }
 
 func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOption) (Stream, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	// make a copy of call opts
 	callOpts := r.opts.CallOptions
 	for _, opt := range opts {
@@ -508,10 +548,9 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		return nil, err
 	}
 
-	// should we noop right here?
 	select {
 	case <-ctx.Done():
-		return nil, errors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
+		return nil, merrors.Timeout(packageID, fmt.Sprintf("%v", ctx.Err()))
 	default:
 	}
 
@@ -519,7 +558,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		// call backoff first. Someone may want an initial start delay
 		t, err := callOpts.Backoff(ctx, request, i)
 		if err != nil {
-			return nil, errors.InternalServerError(packageID, "backoff error: %v", err.Error())
+			return nil, merrors.InternalServerError(packageID, "backoff error: %v", err.Error())
 		}
 
 		// only sleep if greater than 0
@@ -530,14 +569,16 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 		node, err := next()
 		service := request.Service()
 		if err != nil {
-			if err == selector.ErrNotFound {
-				return nil, errors.InternalServerError(packageID, "service %s: %s", service, err.Error())
+			if errors.Is(err, selector.ErrNotFound) {
+				return nil, merrors.InternalServerError(packageID, "service %s: %s", service, err.Error())
 			}
-			return nil, errors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
+
+			return nil, merrors.InternalServerError(packageID, "error getting next %s node: %s", service, err.Error())
 		}
 
 		stream, err := r.stream(ctx, node, request, callOpts)
 		r.opts.Selector.Mark(service, node, err)
+
 		return stream, err
 	}
 
@@ -555,6 +596,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 	}
 
 	ch := make(chan response, retries+1)
+
 	var grr error
 
 	for i := 0; i <= retries; i++ {
@@ -565,7 +607,7 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 
 		select {
 		case <-ctx.Done():
-			return nil, errors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
+			return nil, merrors.Timeout(packageID, fmt.Sprintf("call timeout: %v", ctx.Err()))
 		case rsp := <-ch:
 			// if the call succeeded lets bail early
 			if rsp.err == nil {
@@ -617,7 +659,7 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 	// encode message body
 	cf, err := r.newCodec(msg.ContentType())
 	if err != nil {
-		return errors.InternalServerError(packageID, err.Error())
+		return merrors.InternalServerError(packageID, err.Error())
 	}
 
 	var body []byte
@@ -637,17 +679,23 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 				headers.Message: msg.Topic(),
 			},
 		}, msg.Payload()); err != nil {
-			return errors.InternalServerError(packageID, err.Error())
+			return merrors.InternalServerError(packageID, err.Error())
 		}
 
 		// set the body
 		body = b.Bytes()
 	}
 
-	if !r.once.Load().(bool) {
+	l, ok := r.once.Load().(bool)
+	if !ok {
+		return fmt.Errorf("failed to cast to bool")
+	}
+
+	if !l {
 		if err = r.opts.Broker.Connect(); err != nil {
-			return errors.InternalServerError(packageID, err.Error())
+			return merrors.InternalServerError(packageID, err.Error())
 		}
+
 		r.once.Store(true)
 	}
 

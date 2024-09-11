@@ -8,11 +8,11 @@ The API gateway dynamically serves requests via HTTP json to realmicro services 
 
 ## Example
 
-The request http://localhost:8080/helloworld/call will route to the service `real.micro.helloworld` and endpoint `Helloworld.Call`.
+The request http://localhost:8080/helloworld/call will route to the service `realmicro.helloworld` and endpoint `Helloworld.Call`.
 
 ### For differing handlers
 
-The request http://localhost:8080/helloworld/Greeter/Hello will route to the service `real.micro.helloworld` and endpoint `Greeter.Hello`
+The request http://localhost:8080/helloworld/Greeter/Hello will route to the service `realmicro.helloworld` and endpoint `Greeter.Hello`
 
 ## Usage
 

@@ -19,7 +19,7 @@ type Resolver interface {
 
 // Endpoint is the endpoint for a http request.
 type Endpoint struct {
-	// e.g greeter
+	// e.g greeter, service name
 	Name string
 	// HTTP Host e.g example.com
 	Host string

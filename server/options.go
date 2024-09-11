@@ -14,39 +14,42 @@ import (
 )
 
 type Options struct {
-	Codecs       map[string]codec.NewCodec
-	Broker       broker.Broker
-	Registry     registry.Registry
-	Tracer       trace.Tracer
-	Transport    transport.Transport
-	Metadata     map[string]string
-	Name         string
-	Address      string
-	Advertise    string
-	Id           string
-	Version      string
-	HdlrWrappers []HandlerWrapper
-	SubWrappers  []SubscriberWrapper
-
-	// RegisterCheck runs a check function before registering the service
-	RegisterCheck func(context.Context) error
-	// The register expiry time
-	RegisterTTL time.Duration
-	// The interval on which to register
-	RegisterInterval time.Duration
-
-	// The router for requests
-	Router Router
-
-	// TLSConfig specifies tls.Config for secure serving
-	TLSConfig *tls.Config
+	Broker    broker.Broker
+	Registry  registry.Registry
+	Tracer    trace.Tracer
+	Transport transport.Transport
 
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
+
+	// The router for requests
+	Router Router
+
+	// RegisterCheck runs a check function before registering the service
+	RegisterCheck func(context.Context) error
+	Metadata      map[string]string
+
+	// TLSConfig specifies tls.Config for secure serving
+	TLSConfig *tls.Config
+
+	Codecs        map[string]codec.NewCodec
+	Name          string
+	Id            string
+	Version       string
+	Advertise     string
+	Address       string
+	HdlrWrappers  []HandlerWrapper
+	ListenOptions []transport.ListenOption
+	SubWrappers   []SubscriberWrapper
+	// The interval on which to register
+	RegisterInterval time.Duration
+
+	// The register expiry time
+	RegisterTTL time.Duration
 }
 
-func newOptions(opt ...Option) Options {
+func NewOptions(opt ...Option) Options {
 	opts := Options{
 		Codecs:           make(map[string]codec.NewCodec),
 		Metadata:         map[string]string{},
@@ -254,5 +257,13 @@ func WrapHandler(w HandlerWrapper) Option {
 func WrapSubscriber(w SubscriberWrapper) Option {
 	return func(o *Options) {
 		o.SubWrappers = append(o.SubWrappers, w)
+	}
+}
+
+// ListenOption Add transport.ListenOption to the ListenOptions list, when using it, it will be passed to the
+// httpTransport.Listen() method.
+func ListenOption(option transport.ListenOption) Option {
+	return func(o *Options) {
+		o.ListenOptions = append(o.ListenOptions, option)
 	}
 }

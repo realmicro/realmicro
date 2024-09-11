@@ -1,10 +1,10 @@
 package selector
 
 import (
-	"errors"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/cache"
 )

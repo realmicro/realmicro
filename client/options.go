@@ -11,74 +11,100 @@ import (
 	"github.com/realmicro/realmicro/transport"
 )
 
-type Options struct {
-	// Used to select codec
-	ContentType string
+var (
+	// DefaultBackoff is the default backoff function for retries
+	DefaultBackoff = exponentialBackoff
+	// DefaultRetry is the default check-for-retry function for retries
+	DefaultRetry = RetryOnError
+	// DefaultRetries is the default number of times a request is tried
+	DefaultRetries = 1
+	// DefaultRequestTimeout is the default request timeout
+	DefaultRequestTimeout = time.Second * 5
+	// DefaultConnectionTimeout is the default connection timeout.
+	DefaultConnectionTimeout = time.Second * 5
+	// DefaultPoolSize sets the connection pool size
+	DefaultPoolSize = 100
+	// DefaultPoolTTL sets the connection pool ttl
+	DefaultPoolTTL = time.Minute
+	// DefaultPoolCloseTimeout sets the connection pool colse timeout.
+	DefaultPoolCloseTimeout = time.Second
+)
 
-	// Plugged interfaces
-	Broker    broker.Broker
-	Codecs    map[string]codec.NewCodec
-	Registry  registry.Registry
-	Selector  selector.Selector
-	Transport transport.Transport
+type Options struct {
+	// Default Call Options
+	CallOptions CallOptions
 
 	// Router sets the router
 	Router Router
 
-	// Connection Pool
-	PoolSize int
-	PoolTTL  time.Duration
+	Registry  registry.Registry
+	Selector  selector.Selector
+	Transport transport.Transport
+
+	// Plugged interfaces
+	Broker broker.Broker
+
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
+	Codecs  map[string]codec.NewCodec
 
 	// Response cache
 	Cache *Cache
 
+	// Used to select codec
+	ContentType string
+
 	// Middleware for client
 	Wrappers []Wrapper
 
-	// Default Call Options
-	CallOptions CallOptions
-
-	// Other options for implementations of the interface
-	// can be stored in a context
-	Context context.Context
+	// Connection Pool
+	PoolSize         int
+	PoolTTL          time.Duration
+	PoolCloseTimeout time.Duration
 }
 
 type CallOptions struct {
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
+	// Backoff func
+	Backoff BackoffFunc
+	// Check if retrievable func
+	Retry         RetryFunc
 	SelectOptions []selector.SelectOption
 
 	// Address of remote hosts
 	Address []string
-	// Backoff func
-	Backoff BackoffFunc
-	// Check if retriable func
-	Retry RetryFunc
-	// Transport Dial Timeout
-	DialTimeout time.Duration
-	// Number of Call attempts
-	Retries int
-	// Request/Response timeout
-	RequestTimeout time.Duration
-	// Stream timeout for the stream
-	StreamTimeout time.Duration
-	// Use the services own auth token
-	ServiceToken bool
-	// Duration to cache the response for
-	CacheExpiry time.Duration
 
 	// Middleware for low level call func
 	CallWrappers []CallWrapper
 
-	// Other options for implementations of the interface
-	// can be stored in a context
-	Context context.Context
+	// ConnectionTimeout of one request to the server.
+	// Set this lower than the RequestTimeout to enable retries on connection timeout.
+	ConnectionTimeout time.Duration
+	// Request/Response timeout
+	RequestTimeout time.Duration
+	// Stream timeout for the stream
+	StreamTimeout time.Duration
+	// Duration to cache the response for
+	CacheExpiry time.Duration
+	// Transport Dial Timeout
+	DialTimeout time.Duration
+	// Number of Call attempts
+	Retries int
+	// Use the services own auth token
+	ServiceToken bool
+	// ConnClose sets the Connection: close header.
+	ConnClose bool
 }
 
 type PublishOptions struct {
-	// Exchange is the routing exchange for the message
-	Exchange string
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
+	// Exchange is the routing exchange for the message
+	Exchange string
 }
 
 type MessageOptions struct {
@@ -86,12 +112,11 @@ type MessageOptions struct {
 }
 
 type RequestOptions struct {
-	ContentType string
-	Stream      bool
-
 	// Other options for implementations of the interface
 	// can be stored in a context
-	Context context.Context
+	Context     context.Context
+	ContentType string
+	Stream      bool
 }
 
 func NewOptions(options ...Option) Options {
@@ -101,18 +126,20 @@ func NewOptions(options ...Option) Options {
 		ContentType: DefaultContentType,
 		Codecs:      make(map[string]codec.NewCodec),
 		CallOptions: CallOptions{
-			Backoff:        DefaultBackoff,
-			Retry:          DefaultRetry,
-			Retries:        DefaultRetries,
-			RequestTimeout: DefaultRequestTimeout,
-			DialTimeout:    transport.DefaultDialTimeout,
+			Backoff:           DefaultBackoff,
+			Retry:             DefaultRetry,
+			Retries:           DefaultRetries,
+			RequestTimeout:    DefaultRequestTimeout,
+			ConnectionTimeout: DefaultConnectionTimeout,
+			DialTimeout:       transport.DefaultDialTimeout,
 		},
-		PoolSize:  DefaultPoolSize,
-		PoolTTL:   DefaultPoolTTL,
-		Broker:    broker.DefaultBroker,
-		Selector:  selector.DefaultSelector,
-		Registry:  registry.DefaultRegistry,
-		Transport: transport.DefaultTransport,
+		PoolSize:         DefaultPoolSize,
+		PoolTTL:          DefaultPoolTTL,
+		PoolCloseTimeout: DefaultPoolCloseTimeout,
+		Broker:           broker.DefaultBroker,
+		Selector:         selector.DefaultSelector,
+		Registry:         registry.DefaultRegistry,
+		Transport:        transport.DefaultTransport,
 	}
 
 	for _, o := range options {
@@ -154,6 +181,13 @@ func PoolSize(d int) Option {
 func PoolTTL(d time.Duration) Option {
 	return func(o *Options) {
 		o.PoolTTL = d
+	}
+}
+
+// PoolCloseTimeout sets the connection pool close timeout.
+func PoolCloseTimeout(d time.Duration) Option {
+	return func(o *Options) {
+		o.PoolCloseTimeout = d
 	}
 }
 

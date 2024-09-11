@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net"
 	"runtime/debug"
@@ -12,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/realmicro/realmicro/broker"
 	"github.com/realmicro/realmicro/codec"
 	raw "github.com/realmicro/realmicro/codec/bytes"
@@ -47,7 +47,7 @@ type rpcServer struct {
 }
 
 func newRpcServer(opts ...Option) Server {
-	options := newOptions(opts...)
+	options := NewOptions(opts...)
 	r := newRpcRouter()
 	r.hdlrWrappers = options.HdlrWrappers
 	r.subWrappers = options.SubWrappers
@@ -135,6 +135,9 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 	// global error tracking
 	var gerr error
 
+	// Keep track of Connection: close header
+	var closeConn bool
+
 	// streams are multiplexed on Micro-Stream or Micro-Id header
 	pool := socket.NewPool()
 
@@ -180,19 +183,28 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 			Header: make(map[string]string),
 		}
 
+		// Close connection if Connection: close header was set
+		if closeConn {
+			return
+		}
+
 		// process inbound messages one at a time
 		if err := sock.Recv(&msg); err != nil {
 			// set a global error and return
 			// we're saying we essentially can't
 			// use the socket anymore
-			gerr = err
+			gerr = errors.Wrapf(err, "%s-%s | %s", s.opts.Name, s.opts.Id, sock.Remote())
 
 			return
 		}
 
-		// check the message header for
-		// Micro-Service is a request
-		// Micro-Topic is a message
+		// Keep track of when to close the connection
+		if c := msg.Header["Connection"]; c == "close" {
+			closeConn = true
+		}
+
+		// Check the message header for micro message header, if so handle
+		// as micro event
 		if t := msg.Header[headers.Message]; len(t) > 0 {
 			// process the event
 			ev := newEvent(msg)
@@ -208,7 +220,6 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 				gerr = err
 				break
 			}
-			// we're done
 			continue
 		}
 
@@ -226,7 +237,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 			id = v
 			stream = true
 		} else {
-			// if there's no stream id then its a standard request
+			// if there's no stream id then it's a standard request
 			// use the Micro-Id
 			id = msg.Header[headers.ID]
 		}
@@ -234,10 +245,12 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// check if we have an existing socket
 		psock, ok := pool.Get(id)
 
-		// if we don't have a socket and its a stream
-		// check if its a last stream EOS error
+		// if we don't have a socket, and it's a stream
+		// check if it's a last stream EOS error
 		if !ok && stream && msg.Header[headers.Error] == errLastStreamResponse.Error() {
+			closeConn = true
 			pool.Release(psock)
+
 			continue
 		}
 
@@ -252,10 +265,8 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 				pool.Release(psock)
 			}
 
-			// done waiting
 			wg.Done()
 
-			// continue to the next message
 			continue
 		}
 
@@ -274,7 +285,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// we use this Timeout header to set a server deadline
 		to := msg.Header["Timeout"]
 		// we use this Content-Type header to identify the codec needed
-		ct := msg.Header["Content-Type"]
+		contentType := msg.Header["Content-Type"]
 
 		// copy the message headers
 		hdr := make(map[string]string, len(msg.Header))
@@ -293,15 +304,16 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		if len(to) > 0 {
 			if n, err := strconv.ParseUint(to, 10, 64); err == nil {
 				var cancel context.CancelFunc
+
 				ctx, cancel = context.WithTimeout(ctx, time.Duration(n))
 				defer cancel()
 			}
 		}
 
 		// if there's no content type default it
-		if len(ct) == 0 {
+		if len(contentType) == 0 {
 			msg.Header["Content-Type"] = DefaultContentType
-			ct = DefaultContentType
+			contentType = DefaultContentType
 		}
 
 		// setup old protocol
@@ -311,7 +323,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		if cf == nil {
 			var err error
 			// try to get a new codec
-			if cf, err = s.newCodec(ct); err != nil {
+			if cf, err = s.newCodec(contentType); err != nil {
 				// no codec found so send back an error
 				if err := sock.Send(&transport.Message{
 					Header: map[string]string{
@@ -322,9 +334,8 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 					gerr = err
 				}
 
-				// release the socket we just created
 				pool.Release(psock)
-				// now continue
+
 				continue
 			}
 		}
@@ -339,7 +350,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 			service:     getHeader(headers.Request, msg.Header),
 			method:      getHeader(headers.Method, msg.Header),
 			endpoint:    getHeader(headers.Endpoint, msg.Header),
-			contentType: ct,
+			contentType: contentType,
 			codec:       rcodec,
 			header:      msg.Header,
 			body:        msg.Body,
@@ -508,10 +519,9 @@ func (s *rpcServer) Subscribe(sb Subscriber) error {
 }
 
 func (s *rpcServer) Register() error {
-	s.RLock()
-	rsvc := s.rsvc
 	config := s.Options()
-	s.RUnlock()
+
+	rsvc := s.getCachedService()
 
 	regFunc := func(service *registry.Service) error {
 		// create registry options
@@ -519,28 +529,29 @@ func (s *rpcServer) Register() error {
 
 		var regErr error
 
+		// Attempt to register. If registration fails, back off and try again.
+		// TODO: see if we can improve the retry mechanism. Maybe retry lib, maybe config values
 		for i := 0; i < 3; i++ {
-			// attempt to register
 			if err := config.Registry.Register(service, rOpts...); err != nil {
-				// set the error
 				regErr = err
-				// backoff then retry
+
 				time.Sleep(backoff.Do(i + 1))
+
 				continue
 			}
-			// success so nil error
-			regErr = nil
-			break
+
+			return nil
 		}
 
 		return regErr
 	}
 
-	// have we registered before?
+	// Directly register if service was cached
 	if rsvc != nil {
 		if err := regFunc(rsvc); err != nil {
-			return err
+			return errors.Wrap(err, "failed to register service")
 		}
+
 		return nil
 	}
 
@@ -576,9 +587,6 @@ func (s *rpcServer) Register() error {
 		return err
 	}
 
-	// make copy of metadata
-	md := metadata.Copy(config.Metadata)
-
 	// mq-rpc(eg. nats) doesn't need the port. its addr is queue name.
 	if port != "" {
 		addr = mnet.HostPort(addr, port)
@@ -586,23 +594,19 @@ func (s *rpcServer) Register() error {
 
 	// register service
 	node := &registry.Node{
+		// TODO: node id should be set better. Add native option to specify
+		// host id through either config or ENV. Also look at logging of name.
 		Id:       config.Name + "-" + config.Id,
 		Address:  addr,
-		Metadata: md,
+		Metadata: s.newNodeMetadata(config),
 	}
-
-	node.Metadata["transport"] = config.Transport.String()
-	node.Metadata["broker"] = config.Broker.String()
-	node.Metadata["server"] = s.String()
-	node.Metadata["registry"] = config.Registry.String()
-	node.Metadata["protocol"] = "mucp"
 
 	s.RLock()
 
 	// Maps are ordered randomly, sort the keys for consistency
 	var handlerList []string
 	for n, e := range s.handlers {
-		// Only advertise non internal handlers
+		// Only advertise non-internal handlers
 		if !e.Options().Internal {
 			handlerList = append(handlerList, n)
 		}
@@ -612,7 +616,7 @@ func (s *rpcServer) Register() error {
 
 	var subscriberList []Subscriber
 	for e := range s.subscribers {
-		// Only advertise non internal subscribers
+		// Only advertise non-internal subscribers
 		if !e.Options().Internal {
 			subscriberList = append(subscriberList, e)
 		}
@@ -693,13 +697,14 @@ func (s *rpcServer) Register() error {
 			opts = append(opts, broker.DisableAutoAck())
 		}
 
+		if logger.V(logger.InfoLevel, logger.DefaultLogger) {
+			logger.Infof("Subscribing to topic: %s", sb.Topic())
+		}
 		sub, err := config.Broker.Subscribe(sb.Topic(), s.HandleEvent, opts...)
 		if err != nil {
 			return err
 		}
-		if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-			logger.Infof("Subscribing to topic: %s", sub.Topic())
-		}
+
 		s.subscribers[sb] = []broker.Subscriber{sub}
 	}
 	if cacheService {
@@ -714,9 +719,7 @@ func (s *rpcServer) Deregister() error {
 	var err error
 	var advt, host, port string
 
-	s.RLock()
 	config := s.Options()
-	s.RUnlock()
 
 	// check the advertise address first
 	// if it exists then use it, otherwise
@@ -766,10 +769,11 @@ func (s *rpcServer) Deregister() error {
 	}
 
 	s.Lock()
+	defer s.Unlock()
+
 	s.rsvc = nil
 
 	if !s.registered {
-		s.Unlock()
 		return nil
 	}
 
@@ -777,62 +781,60 @@ func (s *rpcServer) Deregister() error {
 
 	// close the subscriber
 	if s.subscriber != nil {
-		s.subscriber.Unsubscribe()
+		if err := s.subscriber.Unsubscribe(); err != nil {
+			logger.Logf(logger.ErrorLevel, "Failed to unsubscribe service from service name topic: %v", err)
+		}
+
 		s.subscriber = nil
 	}
 
 	for sb, subs := range s.subscribers {
-		for _, sub := range subs {
+		for i, sub := range subs {
 			if logger.V(logger.InfoLevel, logger.DefaultLogger) {
 				logger.Infof("Unsubscribing %s from topic: %s", node.Id, sub.Topic())
 			}
-			sub.Unsubscribe()
+			if err := sub.Unsubscribe(); err != nil {
+				logger.Logf(logger.ErrorLevel, "Failed to unsubscribe subscriber nr. %d from topic %s: %v", i+1, sub.Topic(), err)
+			}
 		}
+
 		s.subscribers[sb] = nil
 	}
 
-	s.Unlock()
 	return nil
 }
 
 func (s *rpcServer) Start() error {
-	s.RLock()
-	if s.started {
-		s.RUnlock()
+	if s.isStarted() {
 		return nil
 	}
-	s.RUnlock()
 
 	config := s.Options()
 
-	// start listening on the transport
-	ts, err := config.Transport.Listen(config.Address)
+	// start listening on the listener
+	listener, err := config.Transport.Listen(config.Address)
 	if err != nil {
 		return err
 	}
 
 	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("Transport [%s] Listening on %s", config.Transport.String(), ts.Addr())
+		logger.Infof("Transport [%s] Listening on %s", config.Transport.String(), listener.Addr())
 	}
 
 	// swap address
-	s.Lock()
-	addr := s.opts.Address
-	s.opts.Address = ts.Addr()
-	s.Unlock()
-
-	bname := config.Broker.String()
+	addr := s.swapAddr(config, listener.Addr())
 
 	// connect to the broker
+	brokerName := config.Broker.String()
 	if err := config.Broker.Connect(); err != nil {
 		if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
-			logger.Errorf("Broker [%s] connect error: %v", bname, err)
+			logger.Errorf("Broker [%s] connect error: %v", brokerName, err)
 		}
 		return err
 	}
 
 	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("Broker [%s] Connected to %s", bname, config.Broker.Address())
+		logger.Infof("Broker [%s] Connected to %s", brokerName, config.Broker.Address())
 	}
 
 	// use RegisterCheck func before register
@@ -854,7 +856,7 @@ func (s *rpcServer) Start() error {
 	go func() {
 		for {
 			// listen for connections
-			err := ts.Accept(s.ServeConn)
+			err := listener.Accept(s.ServeConn)
 
 			// TODO: listen for messages
 			// msg := broker.Exchange(service).Consume()
@@ -870,6 +872,7 @@ func (s *rpcServer) Start() error {
 						logger.Errorf("Accept error: %v", err)
 					}
 					time.Sleep(time.Second)
+
 					continue
 				}
 			}
@@ -880,12 +883,10 @@ func (s *rpcServer) Start() error {
 	}()
 
 	go func() {
-		t := new(time.Ticker)
-
 		// only process if it exists
+		ticker := new(time.Ticker)
 		if s.opts.RegisterInterval > time.Duration(0) {
-			// new ticker
-			t = time.NewTicker(s.opts.RegisterInterval)
+			ticker = time.NewTicker(s.opts.RegisterInterval)
 		}
 
 		// return error chan
@@ -895,10 +896,9 @@ func (s *rpcServer) Start() error {
 		for {
 			select {
 			// register self on interval
-			case <-t.C:
-				s.RLock()
-				registered := s.registered
-				s.RUnlock()
+			case <-ticker.C:
+				registered := s.isRegistered()
+
 				rerr := s.opts.RegisterCheck(s.opts.Context)
 				if rerr != nil && registered {
 					if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
@@ -916,24 +916,24 @@ func (s *rpcServer) Start() error {
 					}
 					continue
 				}
+
 				if err := s.Register(); err != nil {
 					if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
 						logger.Errorf("Server %s-%s register error: %s", config.Name, config.Id, err)
 					}
 				}
+
 			// wait for exit
 			case ch = <-s.exit:
-				t.Stop()
+				ticker.Stop()
 				close(exit)
+
 				break Loop
 			}
 		}
 
-		s.RLock()
-		registered := s.registered
-		s.RUnlock()
-		if registered {
-			// deregister self
+		// Shutting down, deregister
+		if s.isRegistered() {
 			if err := s.Deregister(); err != nil {
 				if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
 					logger.Errorf("Server %s-%s deregister error: %s", config.Name, config.Id, err)
@@ -941,61 +941,62 @@ func (s *rpcServer) Start() error {
 			}
 		}
 
-		s.Lock()
-		swg := s.wg
-		s.Unlock()
-
 		// wait for requests to finish
-		if swg != nil {
+		if swg := s.getWg(); swg != nil {
 			swg.Wait()
 		}
 
 		// close transport listener
-		ch <- ts.Close()
+		ch <- listener.Close()
 
 		if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-			logger.Infof("Broker [%s] Disconnected from %s", bname, config.Broker.Address())
+			logger.Infof("Broker [%s] Disconnected from %s", brokerName, config.Broker.Address())
 		}
 		// disconnect the broker
 		if err := config.Broker.Disconnect(); err != nil {
 			if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
-				logger.Errorf("Broker [%s] Disconnect error: %v", bname, err)
+				logger.Errorf("Broker [%s] Disconnect error: %v", brokerName, err)
 			}
 		}
 
-		// swap back address
-		s.Lock()
-		s.opts.Address = addr
-		s.Unlock()
+		// Swap back address
+		s.setOptsAddr(addr)
 	}()
 
-	// mark the server as started
-	s.Lock()
-	s.started = true
-	s.Unlock()
+	s.setStarted(true)
 
 	return nil
 }
 
 func (s *rpcServer) Stop() error {
-	s.RLock()
-	if !s.started {
-		s.RUnlock()
+	if !s.isStarted() {
 		return nil
 	}
-	s.RUnlock()
 
 	ch := make(chan error)
 	s.exit <- ch
 
 	err := <-ch
-	s.Lock()
-	s.started = false
-	s.Unlock()
+
+	s.setStarted(false)
 
 	return err
 }
 
 func (s *rpcServer) String() string {
 	return "mucp"
+}
+
+// newNodeMetadata creates a new metadata map with default values.
+func (s *rpcServer) newNodeMetadata(config Options) metadata.Metadata {
+	md := metadata.Copy(config.Metadata)
+
+	md["transport"] = config.Transport.String()
+	md["broker"] = config.Broker.String()
+	md["server"] = s.String()
+	md["registry"] = config.Registry.String()
+	md["protocol"] = "mucp"
+	md["startup"] = time.Now().Format("2006-01-02 15:04:05")
+
+	return md
 }

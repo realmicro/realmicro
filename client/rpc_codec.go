@@ -242,15 +242,23 @@ func (c *rpcCodec) ReadBody(b interface{}) error {
 	if err := c.codec.ReadBody(b); err != nil {
 		return errors.InternalServerError("real.micro.client.codec", err.Error())
 	}
+
 	return nil
 }
 
 func (c *rpcCodec) Close() error {
-	c.buf.Close()
-	c.codec.Close()
+	if err := c.buf.Close(); err != nil {
+		return err
+	}
+
+	if err := c.codec.Close(); err != nil {
+		return err
+	}
+
 	if err := c.client.Close(); err != nil {
 		return errors.InternalServerError("real.micro.client.transport", err.Error())
 	}
+
 	return nil
 }
 

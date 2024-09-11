@@ -1,9 +1,5 @@
 package server
 
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 import (
 	"context"
 	"errors"
@@ -24,25 +20,25 @@ import (
 var (
 	errLastStreamResponse = errors.New("EOS")
 
-	// Precompute the reflect type for error. Can't use error directly
+	// Precompute the reflection type for error. Can't use error directly
 	// because Typeof takes an empty interface value. This is annoying.
 	typeOfError = reflect.TypeOf((*error)(nil)).Elem()
 )
 
 type methodType struct {
-	sync.Mutex  // protects counters
-	method      reflect.Method
 	ArgType     reflect.Type
 	ReplyType   reflect.Type
 	ContextType reflect.Type
+	method      reflect.Method
+	sync.Mutex  // protects counters
 	stream      bool
 }
 
 type service struct {
-	name   string                 // name of service
-	rcvr   reflect.Value          // receiver of methods for the service
 	typ    reflect.Type           // type of the receiver
 	method map[string]*methodType // registered methods
+	rcvr   reflect.Value          // receiver of methods for the service
+	name   string                 // name of service
 }
 
 type request struct {
@@ -57,24 +53,27 @@ type response struct {
 
 // router represents an RPC router.
 type router struct {
-	name string
-
-	mu         sync.Mutex // protects the serviceMap
 	serviceMap map[string]*service
 
-	reqLock sync.Mutex // protects freeReq
 	freeReq *request
 
-	respLock sync.Mutex // protects freeResp
 	freeResp *response
+
+	subscribers map[string][]*subscriber
+	name        string
 
 	// handler wrappers
 	hdlrWrappers []HandlerWrapper
 	// subscriber wrappers
 	subWrappers []SubscriberWrapper
 
-	su          sync.RWMutex
-	subscribers map[string][]*subscriber
+	su sync.RWMutex
+
+	mu sync.Mutex // protects the serviceMap
+
+	reqLock sync.Mutex // protects freeReq
+
+	respLock sync.Mutex // protects freeResp
 }
 
 // rpcRouter encapsulates functions that become a server.Router
@@ -191,10 +190,13 @@ func (router *router) sendResponse(sending sync.Locker, req *request, reply inte
 	resp.msg = msg
 
 	resp.msg.Id = req.msg.Id
+
 	sending.Lock()
 	err := cc.Write(resp.msg, reply)
 	sending.Unlock()
+
 	router.freeResponse(resp)
+
 	return err
 }
 
@@ -284,11 +286,14 @@ func (m *methodType) prepareContext(ctx context.Context) reflect.Value {
 	if contextv := reflect.ValueOf(ctx); contextv.IsValid() {
 		return contextv
 	}
+
 	return reflect.Zero(m.ContextType)
 }
 
 func (router *router) getRequest() *request {
 	router.reqLock.Lock()
+	defer router.reqLock.Unlock()
+
 	req := router.freeReq
 	if req == nil {
 		req = new(request)
@@ -296,19 +301,22 @@ func (router *router) getRequest() *request {
 		router.freeReq = req.next
 		*req = request{}
 	}
-	router.reqLock.Unlock()
+
 	return req
 }
 
 func (router *router) freeRequest(req *request) {
 	router.reqLock.Lock()
+	defer router.reqLock.Unlock()
+
 	req.next = router.freeReq
 	router.freeReq = req
-	router.reqLock.Unlock()
 }
 
 func (router *router) getResponse() *response {
 	router.respLock.Lock()
+	defer router.respLock.Unlock()
+
 	resp := router.freeResp
 	if resp == nil {
 		resp = new(response)
@@ -316,15 +324,16 @@ func (router *router) getResponse() *response {
 		router.freeResp = resp.next
 		*resp = response{}
 	}
-	router.respLock.Unlock()
+
 	return resp
 }
 
 func (router *router) freeResponse(resp *response) {
 	router.respLock.Lock()
+	defer router.respLock.Unlock()
+
 	resp.next = router.freeResp
 	router.freeResp = resp
-	router.respLock.Unlock()
 }
 
 func (router *router) readRequest(r Request) (service *service, mtype *methodType, req *request, argv, replyv reflect.Value, keepReading bool, err error) {
@@ -337,6 +346,7 @@ func (router *router) readRequest(r Request) (service *service, mtype *methodTyp
 		}
 		// discard body
 		cc.ReadBody(nil)
+
 		return
 	}
 	// is it a streaming request? then we don't read the body
@@ -366,6 +376,7 @@ func (router *router) readRequest(r Request) (service *service, mtype *methodTyp
 	if !mtype.stream {
 		replyv = reflect.New(mtype.ReplyType.Elem())
 	}
+
 	return
 }
 
@@ -424,6 +435,7 @@ func (router *router) Handle(h Handler) error {
 	if len(h.Name()) == 0 {
 		return errors.New("rpc.Handle: handler has no name")
 	}
+
 	if !isExported(h.Name()) {
 		return errors.New("rpc.Handle: type " + h.Name() + " is not exported")
 	}
@@ -484,6 +496,7 @@ func (router *router) Subscribe(s Subscriber) error {
 	if !ok {
 		return fmt.Errorf("invalid subscriber: expected *subscriber")
 	}
+
 	if len(sub.handlers) == 0 {
 		return fmt.Errorf("invalid subscriber: no handler functions")
 	}
@@ -519,6 +532,7 @@ func (router *router) ProcessMessage(ctx context.Context, msg Message) (err erro
 	// unlock since we only need to get the subs
 	router.su.RUnlock()
 	if !ok {
+		logger.Warnf("Subscriber not found for topic %s", msg.Topic())
 		return nil
 	}
 

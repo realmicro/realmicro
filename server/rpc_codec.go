@@ -16,22 +16,23 @@ import (
 )
 
 type rpcCodec struct {
-	socket   transport.Socket
-	codec    codec.Codec
-	protocol string
+	socket transport.Socket
+	codec  codec.Codec
 
 	req *transport.Message
 	buf *readWriteCloser
 
+	first    chan bool
+	protocol string
+
 	// check if we're the first
 	sync.RWMutex
-	first chan bool
 }
 
 type readWriteCloser struct {
-	sync.RWMutex
 	wbuf *bytes.Buffer
 	rbuf *bytes.Buffer
+	sync.RWMutex
 }
 
 var (
@@ -53,12 +54,14 @@ var (
 func (rwc *readWriteCloser) Read(p []byte) (n int, err error) {
 	rwc.RLock()
 	defer rwc.RUnlock()
+
 	return rwc.rbuf.Read(p)
 }
 
 func (rwc *readWriteCloser) Write(p []byte) (n int, err error) {
 	rwc.Lock()
 	defer rwc.Unlock()
+
 	return rwc.wbuf.Write(p)
 }
 
@@ -70,6 +73,7 @@ func getHeader(hdr string, md map[string]string) string {
 	if hd := md[hdr]; len(hd) > 0 {
 		return hd
 	}
+
 	return md["X-"+hdr]
 }
 
@@ -98,6 +102,7 @@ func setHeaders(m, r *codec.Message) {
 		if len(v) == 0 {
 			return
 		}
+
 		m.Header[hdr] = v
 		m.Header["X-"+hdr] = v
 	}
@@ -190,7 +195,7 @@ func (c *rpcCodec) ReadHeader(r *codec.Message, t codec.MessageType) error {
 		Body:   c.req.Body,
 	}
 
-	// first message could be pre-loaded
+	// first message could be preloaded
 	select {
 	case <-c.first:
 		// not the first
@@ -259,11 +264,13 @@ func (c *rpcCodec) ReadBody(b interface{}) error {
 	if len(c.req.Body) == 0 {
 		return nil
 	}
+
 	// read raw data
 	if v, ok := b.(*raw.Frame); ok {
 		v.Data = c.req.Body
 		return nil
 	}
+
 	// decode the usual way
 	return c.codec.ReadBody(b)
 }

@@ -60,16 +60,22 @@ func proxyDial(conn net.Conn, addr string, proxyURL *url.URL) (_ net.Conn, err e
 	}
 
 	br := bufio.NewReader(conn)
+
 	rsp, err := http.ReadResponse(br, r)
 	if err != nil {
 		return nil, fmt.Errorf("reading server HTTP response: %v", err)
 	}
-	defer rsp.Body.Close()
+
+	defer func() {
+		err = rsp.Body.Close()
+	}()
+
 	if rsp.StatusCode != http.StatusOK {
 		dump, err := httputil.DumpResponse(rsp, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to do connect handshake, status code: %s", rsp.Status)
 		}
+
 		return nil, fmt.Errorf("failed to do connect handshake, response: %q", dump)
 	}
 

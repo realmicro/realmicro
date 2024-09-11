@@ -88,7 +88,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var service *router.Route
 
 	if h.opts.Router != nil {
-		// try get service from router
+		// try to get service from router
 		s, err := h.opts.Router.Route(r)
 		if err != nil {
 			werr := writeError(w, r, errors.InternalServerError(packageID, err.Error()))
@@ -126,7 +126,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		md = make(metadata.Metadata)
 	}
-	// fill contex with http headers
+	// fill context with http headers
 	md["Host"] = r.Host
 	md["Method"] = r.Method
 	// get canonical headers
@@ -144,7 +144,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if isStream(r, service) {
 		// drop older context as it can have timeouts and create new
 		//		md, _ := metadata.FromContext(cx)
-		// serveWebsocket(context.TODO(), w, r, service, c)
+		// serveWebsocket(context.Background(), w, r, service, c)
 		if err := serveWebsocket(myContext, w, r, service, myClient); err != nil {
 			logger.Log(log.ErrorLevel, err)
 		}
