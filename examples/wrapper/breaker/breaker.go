@@ -24,7 +24,7 @@ func main() {
 	)
 
 	// Create new request to service real.micro.example, method Greeter.Hello
-	req := c.NewRequest("real.micro.helloworld", "Greeter.Hello", &greeter.Request{
+	req := c.NewRequest("realmicro.helloworld", "Greeter.Hello", &greeter.Request{
 		Name: "BreakerError",
 	})
 
@@ -41,7 +41,7 @@ func main() {
 		c.Call(ctx, req, rsp)
 	}
 
-	req = c.NewRequest("real.micro.helloworld", "Greeter.Hello", &greeter.Request{
+	req = c.NewRequest("realmicro.helloworld", "Greeter.Hello", &greeter.Request{
 		Name: "World",
 	})
 	err := c.Call(ctx, req, rsp)

@@ -15,7 +15,7 @@ import (
 
 func call(n string, i int, c client.Client) {
 	// Create new request to service real.micro.example, method Greeter.Hello
-	req := c.NewRequest("real.micro.helloworld", "Greeter.Hello", &greeter.Request{
+	req := c.NewRequest("realmicro.helloworld", "Greeter.Hello", &greeter.Request{
 		Name: fmt.Sprintf("%s-%d", n, i),
 	})
 
