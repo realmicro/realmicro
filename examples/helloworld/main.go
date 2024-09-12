@@ -6,6 +6,7 @@ import (
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/config"
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
+	"github.com/realmicro/realmicro/debug/health/http"
 	"github.com/realmicro/realmicro/errors"
 	"github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
@@ -72,6 +73,7 @@ func main() {
 	service := realmicro.NewService(
 		realmicro.Name(serviceName),
 		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{etcdAddress}...))),
+		realmicro.Health(http.NewHealth()),
 	)
 
 	service.Init()

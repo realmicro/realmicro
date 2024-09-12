@@ -46,7 +46,6 @@ func StartSpanFromContext(ctx context.Context, tp trace.TracerProvider, name str
 	carrier = make(propagation.MapCarrier)
 	propagator.Inject(ctx, carrier)
 	for k, v := range carrier {
-		//lint:ignore SA1019 no unicode punctution handle needed
 		md.Set(strings.Title(k), v)
 	}
 	ctx = metadata.NewContext(ctx, md)

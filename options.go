@@ -9,6 +9,7 @@ import (
 	"github.com/realmicro/realmicro/cache"
 	"github.com/realmicro/realmicro/client"
 	"github.com/realmicro/realmicro/config"
+	"github.com/realmicro/realmicro/debug/health"
 	"github.com/realmicro/realmicro/debug/profile"
 	"github.com/realmicro/realmicro/debug/trace"
 	"github.com/realmicro/realmicro/registry"
@@ -21,28 +22,30 @@ import (
 
 // Options for realmicro service
 type Options struct {
-	Auth   auth.Auth
-	Broker broker.Broker
-	Cache  cache.Cache
-	//Cmd       cmd.Cmd
+	Registry  registry.Registry
+	Store     store.Store
+	Auth      auth.Auth
 	Config    config.Config
 	Client    client.Client
 	Server    server.Server
-	Store     store.Store
-	Registry  registry.Registry
-	Runtime   runtime.Runtime
 	Transport transport.Transport
-	Profile   profile.Profile
-
-	// Before and After funcs
-	BeforeStart []func() error
-	BeforeStop  []func() error
-	AfterStart  []func() error
-	AfterStop   []func() error
+	Broker    broker.Broker
 
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
+
+	Cache   cache.Cache
+	Profile profile.Profile
+	Health  health.Health
+
+	Runtime runtime.Runtime
+
+	// Before and After funcs
+	BeforeStart []func() error
+	AfterStart  []func() error
+	BeforeStop  []func() error
+	AfterStop   []func() error
 
 	Signal bool
 }
@@ -114,6 +117,13 @@ func HandleSignal(b bool) Option {
 func Profile(p profile.Profile) Option {
 	return func(o *Options) {
 		o.Profile = p
+	}
+}
+
+// Health to be used for debug health
+func Health(h health.Health) Option {
+	return func(o *Options) {
+		o.Health = h
 	}
 }
 

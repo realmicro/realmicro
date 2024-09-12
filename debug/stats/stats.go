@@ -11,7 +11,7 @@ type Stats interface {
 	Record(error) error
 }
 
-// A runtime stat
+// Stat A runtime stat
 type Stat struct {
 	// Timestamp of recording
 	Timestamp int64

@@ -18,7 +18,6 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.1
-	github.com/gorilla/handlers v0.0.0-20150720190736-60c7bfde3e33
 	github.com/gorilla/websocket v1.4.2
 	github.com/hibiken/asynq v0.23.0
 	github.com/jinzhu/now v1.1.5
@@ -34,8 +33,8 @@ require (
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/etcd/api/v3 v3.5.2
 	go.etcd.io/etcd/client/v3 v3.5.2
-	go.opentelemetry.io/otel v1.3.0
-	go.opentelemetry.io/otel/trace v1.3.0
+	go.opentelemetry.io/otel v1.8.0
+	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/goleak v1.1.12
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.21.0
@@ -64,8 +63,8 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
-	github.com/go-logr/logr v1.2.1 // indirect
-	github.com/go-logr/stdr v1.2.0 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.2 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect

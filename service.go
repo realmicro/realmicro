@@ -28,7 +28,7 @@ func (s *service) Name() string {
 	return s.opts.Server.Options().Name
 }
 
-// Init initialises options. Additionally it calls cmd.Init
+// Init initialises options. Additionally, it calls cmd.Init
 // which parses command line flags. cmd.Init is only called
 // on first Init.
 func (s *service) Init(opts ...Option) {
@@ -99,7 +99,7 @@ func (s *service) Server() server.Server {
 }
 
 func (s *service) String() string {
-	return "micro"
+	return "realmicro"
 }
 
 func (s *service) Start() error {
@@ -160,6 +160,19 @@ func (s *service) Run() (err error) {
 		}
 		defer func() {
 			err = s.opts.Profile.Stop()
+			if err != nil {
+				logger.Error(err)
+			}
+		}()
+	}
+
+	// start the health
+	if s.opts.Health != nil {
+		if err = s.opts.Health.Start(); err != nil {
+			return err
+		}
+		defer func() {
+			err = s.opts.Health.Stop()
 			if err != nil {
 				logger.Error(err)
 			}
