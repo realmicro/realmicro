@@ -36,7 +36,7 @@ func (h *httpHealth) Start() error {
 
 	h.running = true
 
-	logger.Logf(logger.InfoLevel, "Starting health[%s] at: %s", h.String(), h.opts.Address)
+	logger.Logf(logger.InfoLevel, "Starting health[%s] Listening on %s", h.String(), h.opts.Address)
 
 	return nil
 }

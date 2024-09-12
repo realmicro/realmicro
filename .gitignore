@@ -36,3 +36,4 @@ _cgo_export.*
 *.swo
 
 /examples/helloworld/helloworld
+/examples/client/client
