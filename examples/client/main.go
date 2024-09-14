@@ -16,7 +16,8 @@ import (
 func call(n string, i int, c client.Client) {
 	// Create new request to service real.micro.example, method Greeter.Hello
 	req := c.NewRequest("realmicro.helloworld", "Greeter.Hello", &greeter.Request{
-		Name: fmt.Sprintf("%s-%d", n, i),
+		Id:   uint64(i),
+		Name: fmt.Sprintf("%s%d", n, i),
 	})
 
 	// create context with metadata

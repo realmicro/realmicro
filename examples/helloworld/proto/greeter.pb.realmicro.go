@@ -5,6 +5,7 @@ package greeter
 
 import (
 	fmt "fmt"
+	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "google.golang.org/protobuf/proto"
 	math "math"
 )

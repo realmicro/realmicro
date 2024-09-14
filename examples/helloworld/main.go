@@ -13,6 +13,7 @@ import (
 	mlogrus "github.com/realmicro/realmicro/logger/logrus"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
+	"github.com/realmicro/realmicro/wrapper/validator"
 	"github.com/sirupsen/logrus"
 )
 
@@ -74,6 +75,7 @@ func main() {
 		realmicro.Name(serviceName),
 		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{etcdAddress}...))),
 		realmicro.Health(http.NewHealth()),
+		realmicro.WrapHandler(validator.NewHandlerWrapper()),
 	)
 
 	service.Init()

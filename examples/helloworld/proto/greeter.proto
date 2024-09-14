@@ -1,11 +1,21 @@
 syntax = "proto3";
 
+option go_package = ".;greeter";
+package greeter;
+
+import "validate/validate.proto";
+
 service Greeter {
     rpc Hello(Request) returns (Response) {}
 }
 
 message Request {
-    string name = 1;
+    uint64 id = 1 [(validate.rules).uint64.gt = 0];
+
+    string name = 2 [(validate.rules).string = {
+        pattern:   "^[A-Za-z0-9]+$",
+        max_bytes: 256,
+    }];
 }
 
 message Response {
