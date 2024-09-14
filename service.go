@@ -36,54 +36,6 @@ func (s *service) Init(opts ...Option) {
 	for _, o := range opts {
 		o(&s.opts)
 	}
-
-	//s.once.Do(func() {
-	//	// setup the plugins
-	//	for _, p := range strings.Split(os.Getenv("MICRO_PLUGIN"), ",") {
-	//		if len(p) == 0 {
-	//			continue
-	//		}
-	//
-	//		// load the plugin
-	//		c, err := plugin.Load(p)
-	//		if err != nil {
-	//			logger.Fatal(err)
-	//		}
-	//
-	//		// initialise the plugin
-	//		if err := plugin.Init(c); err != nil {
-	//			logger.Fatal(err)
-	//		}
-	//	}
-	//
-	//	// set cmd name
-	//	if len(s.opts.Cmd.App().Name) == 0 {
-	//		s.opts.Cmd.App().Name = s.Server().Options().Name
-	//	}
-	//
-	//	// Initialise the command flags, overriding new service
-	//	if err := s.opts.Cmd.Init(
-	//		cmd.Auth(&s.opts.Auth),
-	//		cmd.Broker(&s.opts.Broker),
-	//		cmd.Registry(&s.opts.Registry),
-	//		cmd.Runtime(&s.opts.Runtime),
-	//		cmd.Transport(&s.opts.Transport),
-	//		cmd.Client(&s.opts.Client),
-	//		cmd.Config(&s.opts.Config),
-	//		cmd.Server(&s.opts.Server),
-	//		cmd.Store(&s.opts.Store),
-	//		cmd.Profile(&s.opts.Profile),
-	//	); err != nil {
-	//		logger.Fatal(err)
-	//	}
-	//
-	//	// Explicitly set the table name to the service name
-	//	name := s.opts.Cmd.App().Name
-	//	err := s.opts.Store.Init(store.Table(name))
-	//	if err != nil {
-	//		logger.Fatal(err)
-	//	}
-	//})
 }
 
 func (s *service) Options() Options {

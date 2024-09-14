@@ -79,8 +79,8 @@ func Verify(rules []*Rule, acc *Account, res *Resource) error {
 	return ErrForbidden
 }
 
-// include is a helper function which checks to see if the slice contains the value. includes is
-// not case sensitive.
+// include is a helper function which checks to see if the slice contains the value. Include is
+// not case-sensitive.
 func include(slice []string, val string) bool {
 	for _, s := range slice {
 		if strings.EqualFold(s, val) {

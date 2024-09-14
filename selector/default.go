@@ -22,6 +22,7 @@ func (c *registrySelector) newCache() cache.Cache {
 			opts = append(opts, cache.WithTTL(t))
 		}
 	}
+
 	return cache.New(c.so.Registry, opts...)
 }
 

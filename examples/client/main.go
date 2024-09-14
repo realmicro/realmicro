@@ -37,7 +37,11 @@ func call(n string, i int, c client.Client) {
 }
 
 func main() {
-	service := realmicro.NewService(realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{"127.0.0.1:2379"}...))))
+	service := realmicro.NewService(
+		realmicro.Registry(etcd.NewRegistry(
+			registry.Addrs([]string{"127.0.0.1:2379"}...),
+		)),
+	)
 	service.Init()
 
 	fmt.Println("\n--- Call example ---")
