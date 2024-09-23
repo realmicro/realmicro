@@ -13,7 +13,6 @@ import (
 	"github.com/realmicro/realmicro/debug/profile"
 	"github.com/realmicro/realmicro/debug/trace"
 	"github.com/realmicro/realmicro/registry"
-	"github.com/realmicro/realmicro/runtime"
 	"github.com/realmicro/realmicro/selector"
 	"github.com/realmicro/realmicro/server"
 	"github.com/realmicro/realmicro/store"
@@ -39,8 +38,6 @@ type Options struct {
 	Profile profile.Profile
 	Health  health.Health
 
-	Runtime runtime.Runtime
-
 	// Before and After funcs
 	BeforeStart []func() error
 	AfterStart  []func() error
@@ -60,7 +57,6 @@ func newOptions(opts ...Option) Options {
 		Server:    server.DefaultServer,
 		Store:     store.DefaultStore,
 		Registry:  registry.DefaultRegistry,
-		Runtime:   runtime.DefaultRuntime,
 		Transport: transport.DefaultTransport,
 		Context:   context.Background(),
 		Signal:    true,
@@ -190,13 +186,6 @@ func Transport(t transport.Transport) Option {
 		// Update Client and Server
 		o.Client.Init(client.Transport(t))
 		o.Server.Init(server.Transport(t))
-	}
-}
-
-// Runtime sets the runtime
-func Runtime(r runtime.Runtime) Option {
-	return func(o *Options) {
-		o.Runtime = r
 	}
 }
 
