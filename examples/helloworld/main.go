@@ -51,7 +51,7 @@ func main() {
 	serviceName := "realmicro.helloworld"
 
 	logger.DefaultLogger = mlogrus.NewLogger(mlogrus.WithJSONFormatter(&logrus.JSONFormatter{}))
-	logger.Init(logger.WithLevel(logger.InfoLevel))
+	logger.Init(logger.WithLevel(logger.DebugLevel))
 
 	logger.Logf(logger.InfoLevel, "Example Name: %s", serviceName)
 

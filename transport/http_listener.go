@@ -62,7 +62,7 @@ func (h *httpTransportListener) Accept(fn func(Socket)) error {
 			}
 			defer func() {
 				if err := conn.Close(); err != nil {
-					logger.Logf(logger.ErrorLevel, "Failed to close TCP connection: %v", err)
+					logger.Logf(logger.DebugLevel, "Failed to close TCP connection: %v", err)
 				}
 			}()
 
