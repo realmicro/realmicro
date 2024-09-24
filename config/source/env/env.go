@@ -49,12 +49,15 @@ func (e *env) Read() (*source.ChangeSet, error) {
 		tmp := make(map[string]interface{})
 		for i, k := range keys {
 			if i == 0 {
+				value = strings.ReplaceAll(value, " ", "")
 				if intValue, err := strconv.Atoi(value); err == nil {
 					tmp[k] = intValue
 				} else if boolValue, err := strconv.ParseBool(value); err == nil {
 					tmp[k] = boolValue
-				} else if strings.Contains(value, ",") {
-					tmp[k] = strings.Split(strings.ReplaceAll(value, " ", ""), ",")
+				} else if strings.HasPrefix(value, "[") {
+					value = strings.ReplaceAll(value, "[", "")
+					value = strings.ReplaceAll(value, "]", "")
+					tmp[k] = strings.Split(value, ",")
 				} else {
 					tmp[k] = value
 				}

@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	os.Setenv("REALMICRO_CFG_HOSTS_DATABASE_ADDRESS", `10.0.0.1,10.0.0.2`)
+	os.Setenv("REALMICRO_CFG_HOSTS_DATABASE_ADDRESS", `[10.0.0.1,10.0.0.2]`)
 	os.Setenv("REALMICRO_CFG_HOSTS_DATABASE_PORT", `3306`)
 
 	// new config
