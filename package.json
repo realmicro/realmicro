@@ -1,6 +1,6 @@
 {
   "name": "realmicro",
-  "version": "1.0.0-SNAPSHOT-240923-3",
+  "version": "1.0.0-SNAPSHOT-240924",
   "main": "main.go",
   "repository": "git@github.com:realmicro/realmicro.git",
   "author": "ReeZhou <reechou@gmail.com>",
