@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	lvl, err := GetLevel(os.Getenv("MICRO_LOG_LEVEL"))
+	lvl, err := GetLevel(os.Getenv("REALMICRO_LOG_LEVEL"))
 	if err != nil {
 		lvl = InfoLevel
 	}
@@ -140,7 +140,7 @@ func (l *defaultLogger) Log(level Level, v ...interface{}) {
 }
 
 func (l *defaultLogger) Logf(level Level, format string, v ...interface{}) {
-	//	 TODO decide does we need to write message if log level not used?
+	// TODO decide does we need to write message if log level not used?
 	if !l.opts.Level.Enabled(level) {
 		return
 	}

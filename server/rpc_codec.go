@@ -311,7 +311,7 @@ func (c *rpcCodec) Write(r *codec.Message, b interface{}) error {
 		// write an error if it failed
 		m.Error = errors.Wrapf(err, "Unable to encode body").Error()
 		m.Header[headers.Error] = m.Error
-		// no body to write
+		// nobody to write
 		if err := c.codec.Write(m, nil); err != nil {
 			return err
 		}
