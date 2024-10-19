@@ -81,6 +81,8 @@ func (s *service) Stop() error {
 		err = fn()
 	}
 
+	logger.Logf(logger.InfoLevel, "Stopping [service] %s", s.Name())
+
 	if err = s.opts.Server.Stop(); err != nil {
 		return err
 	}

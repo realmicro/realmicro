@@ -109,7 +109,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 			default:
 				// EOF is expected if the client closes the connection
 				if !errors.Is(gerr, io.EOF) {
-					logger.Logf(logger.ErrorLevel, "error while serving connection: %v", gerr)
+					logger.Logf(logger.ErrorLevel, "Error while serving connection: %v", gerr)
 				}
 			}
 		} else {
@@ -121,7 +121,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 
 		// close underlying socket
 		if err := sock.Close(); err != nil {
-			logger.Logf(logger.ErrorLevel, "failed to close socket: %v", err)
+			logger.Logf(logger.ErrorLevel, "Failed to close socket: %v", err)
 		}
 
 		// recover any panics
@@ -164,7 +164,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 
 			if err := s.HandleEvent(ev); err != nil {
 				msg.Header[headers.Error] = err.Error()
-				logger.Logf(logger.ErrorLevel, "failed to handle event: %v", err)
+				logger.Logf(logger.ErrorLevel, "Failed to handle event: %v", err)
 			}
 			// write back some 200
 			if err := sock.Send(&transport.Message{Header: msg.Header}); err != nil {
@@ -385,7 +385,7 @@ func (s *rpcServer) Register() error {
 	rsvc := s.getCachedService()
 	if rsvc != nil {
 		if err := regFunc(rsvc); err != nil {
-			return errors.Wrap(err, "failed to register service")
+			return errors.Wrap(err, "Failed to register service")
 		}
 
 		return nil
@@ -416,14 +416,12 @@ func (s *rpcServer) Register() error {
 	// get registered value
 	registered := s.isRegistered()
 	if !registered {
-		if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-			logger.Infof("Registry [%s] Registering node: %s", config.Registry.String(), node.Id)
-		}
+		logger.Infof("Registry [%s] Registering node: %s", config.Registry.String(), node.Id)
 	}
 
 	// register the service
 	if err := regFunc(service); err != nil {
-		return errors.Wrap(err, "failed to register service")
+		return errors.Wrap(err, "Failed to register service")
 	}
 
 	// already registered? don't need to register subscribers
@@ -447,12 +445,12 @@ func (s *rpcServer) Register() error {
 	// Router can exchange messages on broker
 	// Subscribe to the topic with its own name
 	if err := s.subscribeServer(config); err != nil {
-		return errors.Wrap(err, "failed to subscribe to service name topic")
+		return errors.Wrap(err, "Failed to subscribe to service name topic")
 	}
 
 	// Subscribe for all the subscribers
 	if err := s.reSubscribe(config); err != nil {
-		return errors.Wrap(err, "failed to resubscribe")
+		return errors.Wrap(err, "Failed to resubscribe")
 	}
 
 	return nil
@@ -465,6 +463,7 @@ func (s *rpcServer) Deregister() error {
 
 	addr, _, err := s.getAddr(config)
 	if err != nil {
+		logger.Logf(logger.ErrorLevel, "Failed to get addr: %v", err)
 		return err
 	}
 
@@ -479,10 +478,10 @@ func (s *rpcServer) Deregister() error {
 		Nodes:   []*registry.Node{node},
 	}
 
-	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("Registry [%s] Deregistering node: %s", config.Registry.String(), node.Id)
-	}
+	logger.Infof("Registry [%s] Deregistering node: %s", config.Registry.String(), node.Id)
+
 	if err := config.Registry.Deregister(service); err != nil {
+		logger.Logf(logger.ErrorLevel, "Failed to deregister [%s-%s]: %v", config.Registry.String(), node.Id, err)
 		return err
 	}
 
@@ -508,9 +507,7 @@ func (s *rpcServer) Deregister() error {
 
 	for sb, subs := range s.subscribers {
 		for i, sub := range subs {
-			if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-				logger.Infof("Unsubscribing %s from topic: %s", node.Id, sub.Topic())
-			}
+			logger.Infof("Unsubscribing %s from topic: %s", node.Id, sub.Topic())
 			if err := sub.Unsubscribe(); err != nil {
 				logger.Logf(logger.ErrorLevel, "Failed to unsubscribe subscriber nr. %d from topic %s: %v", i+1, sub.Topic(), err)
 			}
@@ -535,9 +532,7 @@ func (s *rpcServer) Start() error {
 		return err
 	}
 
-	if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-		logger.Infof("Transport [%s] Listening on %s", config.Transport.String(), listener.Addr())
-	}
+	logger.Infof("Transport [%s] Listening on %s", config.Transport.String(), listener.Addr())
 
 	// swap address
 	addr := s.swapAddr(config, listener.Addr())
@@ -722,6 +717,7 @@ func (s *rpcServer) listen(listener transport.Listener, exit chan bool) {
 		select {
 		// check if we're supposed to exit
 		case <-exit:
+			logger.Info("Listener Exit")
 			return
 		// check the error and backoff
 		default:
@@ -757,13 +753,13 @@ Loop:
 
 			rerr := s.opts.RegisterCheck(s.opts.Context)
 			if rerr != nil && registered {
-				logger.Errorf("Server %s-%s register check error: %s, deregister it", config.Name, config.Id, rerr)
+				logger.Errorf("Server %s-%s RegisterCheck error: %s, deregister it", config.Name, config.Id, rerr)
 				// deregister self in case of error
 				if err := s.Deregister(); err != nil {
-					logger.Errorf("Server %s-%s deregister error: %s", config.Name, config.Id, err)
+					logger.Errorf("Server %s-%s Deregister error: %s", config.Name, config.Id, err)
 				}
 			} else if rerr != nil && !registered {
-				logger.Errorf("Server %s-%s register check error: %s", config.Name, config.Id, rerr)
+				logger.Errorf("Server %s-%s RegisterCheck error: %s", config.Name, config.Id, rerr)
 				continue
 			}
 
@@ -775,6 +771,7 @@ Loop:
 		case ch = <-s.exit:
 			ticker.Stop()
 			close(exit)
+			logger.Infof("Server %s-%s register Exit", config.Name, config.Id)
 
 			break Loop
 		}
@@ -783,7 +780,7 @@ Loop:
 	// Shutting down, deregister
 	if s.isRegistered() {
 		if err := s.Deregister(); err != nil {
-			logger.Errorf("Server %s-%s deregister error: %s", config.Name, config.Id, err)
+			logger.Errorf("Server %s-%s Deregister error: %s", config.Name, config.Id, err)
 		}
 	}
 
