@@ -45,6 +45,7 @@ func newRpcClient(opt ...Option) Client {
 		pool.Size(opts.PoolSize),
 		pool.TTL(opts.PoolTTL),
 		pool.Transport(opts.Transport),
+		pool.CloseTimeout(opts.PoolCloseTimeout),
 	)
 
 	rc := &rpcClient{

@@ -18,11 +18,11 @@ type Pool interface {
 }
 
 type Conn interface {
-	// unique id of connection
+	// Id unique id of connection
 	Id() string
-	// time it was created
+	// Created time it was created
 	Created() time.Time
-	// embedded connection
+	// transport.Client embedded connection
 	transport.Client
 }
 
