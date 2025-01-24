@@ -3,6 +3,7 @@ package env
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -13,15 +14,17 @@ import (
 func TestEnv_Read(t *testing.T) {
 	expected := map[string]map[string]string{
 		"database": {
-			"host":       "localhost",
+			"host":       "127.0.0.1:3306",
 			"password":   "password",
 			"datasource": "user:password@tcp(localhost:port)/db?charset=utf8mb4&parseTime=True&loc=Local",
+			"ak":         "1234567890",
 		},
 	}
 
-	os.Setenv("DATABASE_HOST", "localhost")
+	os.Setenv("DATABASE_HOST", "127.0.0.1:3306")
 	os.Setenv("DATABASE_PASSWORD", "password")
 	os.Setenv("DATABASE_DATASOURCE", "user:password@tcp(localhost:port)/db?charset=utf8mb4&parseTime=True&loc=Local")
+	os.Setenv("DATABASE_AK", "\"1234567890\"")
 
 	source := NewSource()
 	c, err := source.Read()
@@ -35,7 +38,7 @@ func TestEnv_Read(t *testing.T) {
 	}
 
 	actualDB := actual["database"].(map[string]interface{})
-
+	fmt.Println(actualDB)
 	for k, v := range expected["database"] {
 		a := actualDB[k]
 
