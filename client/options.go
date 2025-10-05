@@ -251,6 +251,13 @@ func Retry(fn RetryFunc) Option {
 	}
 }
 
+// ConnectionTimeout sets the connection timeout
+func ConnectionTimeout(t time.Duration) Option {
+	return func(o *Options) {
+		o.CallOptions.ConnectionTimeout = t
+	}
+}
+
 // RequestTimeout The request timeout.
 // Should this be a Call Option?
 func RequestTimeout(d time.Duration) Option {

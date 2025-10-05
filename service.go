@@ -94,6 +94,12 @@ func (s *service) Stop() error {
 	return err
 }
 
+func (s *service) Handle(v interface{}) error {
+	return s.opts.Server.Handle(
+		s.opts.Server.NewHandler(v),
+	)
+}
+
 func (s *service) Run() (err error) {
 	// exit when help flag is provided
 	for _, v := range os.Args[1:] {

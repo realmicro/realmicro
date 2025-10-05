@@ -467,7 +467,10 @@ func (s *rpcServer) Deregister() error {
 		return err
 	}
 
+	// TODO: there should be a better way to do this than reconstruct the service
+	// Edge case is that if service is not cached
 	node := &registry.Node{
+		// TODO: also update node id naming
 		Id:      config.Name + "-" + config.Id,
 		Address: addr,
 	}
@@ -596,11 +599,8 @@ func (s *rpcServer) newRegFuc(config Options) func(service *registry.Service) er
 		// Attempt to register. If registration fails, back off and try again.
 		// TODO: see if we can improve the retry mechanism. Maybe retry lib, maybe config values
 		for i := 0; i < 3; i++ {
-			if err := config.Registry.Register(service, rOpts...); err != nil {
-				regErr = err
-
+			if regErr = config.Registry.Register(service, rOpts...); regErr != nil {
 				time.Sleep(backoff.Do(i + 1))
-
 				continue
 			}
 

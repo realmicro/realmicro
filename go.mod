@@ -1,6 +1,8 @@
 module github.com/realmicro/realmicro
 
-go 1.18
+go 1.21
+
+toolchain go1.24.3
 
 require (
 	dario.cat/mergo v1.0.0

@@ -8,7 +8,7 @@ OpenTelemetry wrappers propagate traces (spans) accross services.
 service := realmicro.NewService(
     realmicro.Name("realmicro.srv.greeter"),
     realmicro.WrapClient(opentelemetry.NewClientWrapper()),
-    realmicro.WrapHandler(open.NewHandlerWrapper()),
+    realmicro.WrapHandler(opentelemetry.NewHandlerWrapper()),
     realmicro.WrapSubscriber(opentelemetry.NewSubscriberWrapper()),
 )
 ```
