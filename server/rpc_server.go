@@ -552,11 +552,8 @@ func (s *rpcServer) Start() error {
 	// use RegisterCheck func before register
 	if err = s.opts.RegisterCheck(s.opts.Context); err != nil {
 		logger.Errorf("Server %s-%s register check error: %s", config.Name, config.Id, err)
-	} else {
-		// announce self to the world
-		if err = s.Register(); err != nil {
-			logger.Errorf("Server %s-%s register error: %s", config.Name, config.Id, err)
-		}
+	} else if err = s.Register(); err != nil {
+		logger.Errorf("Server %s-%s register error: %s", config.Name, config.Id, err)
 	}
 
 	exit := make(chan bool)
