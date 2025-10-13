@@ -81,7 +81,10 @@ func (l *logrusLogger) String() string {
 }
 
 func (l *logrusLogger) Fields(fields map[string]interface{}) logger.Logger {
-	return &logrusLogger{l.Logger.WithFields(fields), l.opts}
+	return &logrusLogger{
+		Logger: l.Logger.WithFields(fields),
+		opts:   l.opts,
+	}
 }
 
 func (l *logrusLogger) Log(level logger.Level, args ...interface{}) {

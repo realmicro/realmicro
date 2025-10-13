@@ -20,6 +20,7 @@ type formatterKey struct{}
 func WithTextTextFormatter(formatter *logrus.TextFormatter) logger.Option {
 	return logger.SetOption(formatterKey{}, formatter)
 }
+
 func WithJSONFormatter(formatter *logrus.JSONFormatter) logger.Option {
 	return logger.SetOption(formatterKey{}, formatter)
 }

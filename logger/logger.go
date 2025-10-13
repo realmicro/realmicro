@@ -5,7 +5,7 @@ var (
 	// DefaultLogger Default logger
 	DefaultLogger Logger = NewLogger()
 
-	// Default logger helper.
+	// DefaultHelper Default logger helper.
 	DefaultHelper *Helper = NewHelper(DefaultLogger)
 )
 
