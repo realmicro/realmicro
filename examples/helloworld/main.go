@@ -129,6 +129,7 @@ func main() {
 			validator.NewHandlerWrapper(),
 			opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(tp)),
 		),
+		realmicro.WrapClient(opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(tp))),
 	)
 	service.Init()
 
