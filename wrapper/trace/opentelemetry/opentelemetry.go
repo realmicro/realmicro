@@ -32,6 +32,7 @@ func StartSpanFromContext(ctx context.Context, tp trace.TracerProvider, name str
 			}
 		}
 	}
+	fmt.Println("1", carrier)
 	ctx = propagator.Extract(ctx, carrier)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	ctx = baggage.ContextWithBaggage(ctx, baggage.FromContext(ctx))
@@ -45,8 +46,11 @@ func StartSpanFromContext(ctx context.Context, tp trace.TracerProvider, name str
 	}
 	ctx, span = tracer.Start(trace.ContextWithRemoteSpanContext(ctx, spanCtx), name, opts...)
 
+	fmt.Println("TraceID:", TraceIDFromContext(ctx))
+
 	carrier = make(propagation.MapCarrier)
 	propagator.Inject(ctx, carrier)
+	fmt.Println("1", carrier)
 	for k, v := range carrier {
 		md.Set(strings.Title(k), v)
 	}

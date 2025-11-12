@@ -35,7 +35,7 @@ func call(n string, i int, c client.Client) {
 	ctx := metadata.NewContext(context.Background(), map[string]string{
 		"X-User-Id":   "john",
 		"X-From-Id":   "script",
-		"traceparent": fmt.Sprintf("traceparent-%d", time.Now().Unix()),
+		"traceparent": fmt.Sprintf("traceparent%d", time.Now().Unix()),
 	})
 
 	rsp := &greeter.Response{}
