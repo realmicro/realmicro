@@ -51,6 +51,7 @@ func call(n string, i int, c client.Client) {
 func main() {
 	flag.Parse()
 
+	fmt.Println(*endpoint, *token)
 	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, serverName)
 	if err != nil {
 		logger.Fatal(err)
@@ -65,15 +66,17 @@ func main() {
 
 	fmt.Println("\n--- Call example ---")
 
-	go func() {
-		for i := 0; i < 10; i++ {
-			call("g1", i, service.Client())
-		}
-	}()
+	//go func() {
+	//	for i := 0; i < 10; i++ {
+	//		call("g1", i, service.Client())
+	//	}
+	//}()
+	//
+	//for i := 0; i < 10; i++ {
+	//	call("main", i, service.Client())
+	//}
 
-	for i := 0; i < 10; i++ {
-		call("main", i, service.Client())
-	}
+	call("main", 1, service.Client())
 
 	time.Sleep(time.Second * 10)
 }
