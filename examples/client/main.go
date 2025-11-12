@@ -52,7 +52,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Println(*endpoint, *token)
-	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, serverName)
+	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, "realmicro-client")
 	if err != nil {
 		logger.Fatal(err)
 	}
