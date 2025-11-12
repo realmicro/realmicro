@@ -32,6 +32,7 @@ func StartSpanFromContext(ctx context.Context, tp trace.TracerProvider, name str
 			}
 		}
 	}
+	fmt.Println("111 TraceID:", TraceIDFromContext(ctx))
 	fmt.Println("1", carrier)
 	ctx = propagator.Extract(ctx, carrier)
 	spanCtx := trace.SpanContextFromContext(ctx)
