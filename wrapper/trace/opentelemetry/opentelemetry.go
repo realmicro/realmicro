@@ -2,6 +2,7 @@ package opentelemetry
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/realmicro/realmicro/metadata"
@@ -26,6 +27,7 @@ func StartSpanFromContext(ctx context.Context, tp trace.TracerProvider, name str
 	for k, v := range md {
 		for _, f := range propagator.Fields() {
 			if strings.EqualFold(k, f) {
+				fmt.Println(f, "->", v)
 				carrier[f] = v
 			}
 		}
