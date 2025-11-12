@@ -2,20 +2,31 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"time"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/client"
+	"github.com/realmicro/realmicro/examples/common"
 	greeter "github.com/realmicro/realmicro/examples/helloworld/proto"
+	"github.com/realmicro/realmicro/logger"
 	"github.com/realmicro/realmicro/metadata"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
+	"github.com/realmicro/realmicro/wrapper/trace/opentelemetry"
 )
+
+var (
+	serverName = "realmicro.helloworld"
+)
+
+var endpoint = flag.String("e", "", "trace endpoint")
+var token = flag.String("t", "", "trace token")
 
 func call(n string, i int, c client.Client) {
 	// Create new request to service real.micro.example, method Greeter.Hello
-	req := c.NewRequest("realmicro.helloworld", "Greeter.Hello", &greeter.Request{
+	req := c.NewRequest(serverName, "Greeter.Hello", &greeter.Request{
 		Id:   uint64(i),
 		Name: fmt.Sprintf("%s%d", n, i),
 	})
@@ -38,10 +49,17 @@ func call(n string, i int, c client.Client) {
 }
 
 func main() {
+	flag.Parse()
+
+	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, serverName)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	service := realmicro.NewService(
 		realmicro.Registry(etcd.NewRegistry(
 			registry.Addrs([]string{"127.0.0.1:2379"}...),
 		)),
+		realmicro.WrapClient(opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(tp))),
 	)
 	service.Init()
 

@@ -2,20 +2,26 @@ package main
 
 import (
 	"context"
+	"flag"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/config"
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
 	"github.com/realmicro/realmicro/debug/health/http"
 	"github.com/realmicro/realmicro/errors"
+	"github.com/realmicro/realmicro/examples/common"
 	"github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
 	mlogrus "github.com/realmicro/realmicro/logger/logrus"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
+	"github.com/realmicro/realmicro/wrapper/trace/opentelemetry"
 	"github.com/realmicro/realmicro/wrapper/validator"
 	"github.com/sirupsen/logrus"
 )
+
+var endpoint = flag.String("e", "", "trace endpoint")
+var token = flag.String("t", "", "trace token")
 
 var (
 	cfg config.Config
@@ -48,6 +54,8 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 }
 
 func main() {
+	flag.Parse()
+
 	serviceName := "realmicro.helloworld"
 
 	logger.DefaultLogger = mlogrus.NewLogger(mlogrus.WithJSONFormatter(&logrus.JSONFormatter{}))
@@ -71,11 +79,15 @@ func main() {
 		return
 	}
 
+	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, serviceName)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	service := realmicro.NewService(
 		realmicro.Name(serviceName),
 		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{etcdAddress}...))),
 		realmicro.Health(http.NewHealth()),
-		realmicro.WrapHandler(validator.NewHandlerWrapper()),
+		realmicro.WrapHandler(validator.NewHandlerWrapper(), opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(tp))),
 	)
 
 	service.Init()
