@@ -23,7 +23,10 @@ import (
 )
 
 const (
-	exampleName = "realmicro.helloworld"
+	exampleName  = "realmicro.helloworld"
+	exampleName1 = "realmicro.helloworld1"
+	exampleName2 = "realmicro.helloworld2"
+	exampleName3 = "realmicro.helloworld3"
 )
 
 var serviceName = flag.String("s", "", "service name")
@@ -52,8 +55,10 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 	rsp.Greeting = "Hello " + req.Name
 
 	if g.ServiceName == exampleName {
-		g.call(ctx, req, exampleName+"1")
-		g.call(ctx, req, exampleName+"2")
+		g.call(ctx, req, exampleName1)
+		g.call(ctx, req, exampleName2)
+	} else if g.ServiceName == exampleName1 {
+		g.call(ctx, req, exampleName3)
 	}
 
 	//if cfg != nil {
