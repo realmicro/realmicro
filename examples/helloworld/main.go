@@ -138,7 +138,7 @@ func main() {
 		Client:      service.Client(),
 	})
 
-	if err := service.Run(); err != nil {
+	if err = service.Run(); err != nil {
 		logger.Fatal(err)
 	}
 }
