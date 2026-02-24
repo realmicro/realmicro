@@ -23,11 +23,15 @@ type Cache interface {
 }
 
 type cache struct {
-	registry.Registry
 	opts Options
 
-	// registry cache
-	sync.RWMutex
+	registry.Registry
+	// status of the registry
+	// used to hold onto the cache
+	// in failure state
+	status error
+	// used to prevent cache breakdown
+	sg      singleflight.Group
 	cache   map[string][]*registry.Service
 	ttls    map[string]time.Time
 	watched map[string]bool
@@ -37,16 +41,16 @@ type cache struct {
 
 	// indicate whether its running
 	running map[string]bool
-	// status of the registry
-	// used to hold onto the cache
-	// in failure state
-	status error
-	// used to prevent cache breakdown
-	sg singleflight.Group
+
+	// registry cache
+	sync.RWMutex
 }
 
 var (
 	DefaultTTL = time.Minute
+	// DefaultMinimumRetryInterval is the default minimum time between retry attempts
+	// when a service lookup fails with no stale cache available
+	DefaultMinimumRetryInterval = 5 * time.Second
 )
 
 func backoff(attempts int) time.Duration {
@@ -486,7 +490,8 @@ func (c *cache) String() string {
 func New(r registry.Registry, opts ...Option) Cache {
 	rand.Seed(time.Now().UnixNano())
 	options := Options{
-		TTL: DefaultTTL,
+		TTL:                  DefaultTTL,
+		MinimumRetryInterval: DefaultMinimumRetryInterval,
 	}
 
 	for _, o := range opts {

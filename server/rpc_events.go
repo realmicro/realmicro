@@ -102,6 +102,30 @@ func (s *rpcServer) subscribeServer(config Options) error {
 // reSubscribe iterates over subscribers and re-subscribes then.
 func (s *rpcServer) reSubscribe(config Options) error {
 	for sb := range s.subscribers {
+		if s.subscribers[sb] != nil {
+			continue
+		}
+		// If we've already created a broker subscription for this topic
+		// (from a different Subscriber entry) then don't create another
+		// broker.Subscribe. We still need to register the subscriber with
+		// the router so it receives dispatched messages.
+		var already bool
+		for other, subs := range s.subscribers {
+			if other.Topic() == sb.Topic() && subs != nil {
+				already = true
+				break
+			}
+		}
+		if already {
+			// register with router only
+			if err := s.router.Subscribe(sb); err != nil {
+				logger.Warnf("Unable to subscribing to topic: %s, error: %s", sb.Topic(), err)
+				continue
+			}
+			// mark this subscriber as having no broker subscription
+			s.subscribers[sb] = nil
+			continue
+		}
 		var opts []broker.SubscribeOption
 		if queue := sb.Options().Queue; len(queue) > 0 {
 			opts = append(opts, broker.Queue(queue))
@@ -115,9 +139,7 @@ func (s *rpcServer) reSubscribe(config Options) error {
 			opts = append(opts, broker.DisableAutoAck())
 		}
 
-		if logger.V(logger.InfoLevel, logger.DefaultLogger) {
-			logger.Infof("Subscribing to topic: %s", sb.Topic())
-		}
+		logger.Infof("Subscribing to topic: %s", sb.Topic())
 		sub, err := config.Broker.Subscribe(sb.Topic(), s.HandleEvent, opts...)
 		if err != nil {
 			logger.Warnf("Unable to subscribing to topic: %s, error: %s", sb.Topic(), err)

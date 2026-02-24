@@ -176,11 +176,10 @@ func (h *httpTransportSocket) recvHTTP2(m *Message) error {
 	case <-h.closed:
 		return io.EOF
 	default:
-		// no op
 	}
 
-	// processing http2 request
-	// read streaming body
+	// buffer pool for reuse
+	var bufPool = getHTTP2BufPool()
 
 	// set max buffer size
 	s := h.ht.opts.BuffSizeH2
@@ -188,21 +187,24 @@ func (h *httpTransportSocket) recvHTTP2(m *Message) error {
 		s = DefaultBufSizeH2
 	}
 
-	buf := make([]byte, s)
+	buf := bufPool.Get().([]byte)
+	if cap(buf) < s {
+		buf = make([]byte, s)
+	}
+	buf = buf[:s]
 
-	// read the request body
 	n, err := h.buf.Read(buf)
-	// not an eof error
 	if err != nil {
+		bufPool.Put(buf)
 		return err
 	}
 
-	// check if we have data
 	if n > 0 {
-		m.Body = buf[:n]
+		m.Body = make([]byte, n)
+		copy(m.Body, buf[:n])
 	}
+	bufPool.Put(buf)
 
-	// set headers
 	for k, v := range h.r.Header {
 		if len(v) > 0 {
 			m.Header[k] = v[0]
@@ -211,7 +213,6 @@ func (h *httpTransportSocket) recvHTTP2(m *Message) error {
 		}
 	}
 
-	// set path
 	m.Header[":path"] = h.r.URL.Path
 
 	return nil

@@ -324,6 +324,10 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// Process the outbound messages from the socket
 		go func(psock *socket.Socket) {
 			defer func() {
+				if r := recover(); r != nil {
+					logger.Log(logger.ErrorLevel, "panic recovered in outbound goroutine: ", r)
+					logger.Log(logger.ErrorLevel, string(debug.Stack()))
+				}
 				// TODO: don't hack this but if its grpc just break out of the stream
 				// We do this because the underlying connection is h2 and its a stream
 				if protocol == "grpc" {
