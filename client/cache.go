@@ -39,6 +39,7 @@ func (c *Cache) List() map[string]string {
 	items := c.cache.Items()
 
 	rsp := make(map[string]string, len(items))
+
 	for k, v := range items {
 		bytes, _ := json.Marshal(v.Object)
 		rsp[k] = string(bytes)
