@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 
 	"github.com/realmicro/realmicro"
 	"github.com/realmicro/realmicro/client"
@@ -11,14 +12,11 @@ import (
 	cetcd "github.com/realmicro/realmicro/config/source/etcd"
 	"github.com/realmicro/realmicro/debug/health/http"
 	"github.com/realmicro/realmicro/errors"
-	"github.com/realmicro/realmicro/examples/common"
 	"github.com/realmicro/realmicro/examples/helloworld/proto"
 	"github.com/realmicro/realmicro/logger"
 	mlogrus "github.com/realmicro/realmicro/logger/logrus"
 	"github.com/realmicro/realmicro/registry"
 	"github.com/realmicro/realmicro/registry/etcd"
-	"github.com/realmicro/realmicro/wrapper/trace/opentelemetry"
-	"github.com/realmicro/realmicro/wrapper/validator"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,11 +39,15 @@ type TestInfo struct {
 	Test string `json:"test"`
 }
 
+// Greeter service handles greeting operations
 type Greeter struct {
 	ServiceName string
 	Client      client.Client
 }
 
+// Hello greets a person by name. Returns a friendly greeting message.
+//
+// @example {"id": 10, "name": "Alice"}
 func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.Response) error {
 	logger.Infof("Received: %d %v", req.Id, req.Name)
 
@@ -54,12 +56,12 @@ func (g *Greeter) Hello(ctx context.Context, req *greeter.Request, rsp *greeter.
 	}
 	rsp.Greeting = "Hello " + req.Name
 
-	if g.ServiceName == exampleName {
-		g.call(ctx, req, exampleName1)
-		g.call(ctx, req, exampleName2)
-	} else if g.ServiceName == exampleName1 {
-		g.call(ctx, req, exampleName3)
-	}
+	//if g.ServiceName == exampleName {
+	//	g.call(ctx, req, exampleName1)
+	//	g.call(ctx, req, exampleName2)
+	//} else if g.ServiceName == exampleName1 {
+	//	g.call(ctx, req, exampleName3)
+	//}
 
 	//if cfg != nil {
 	//	logger.Info("config data:", cfg.Map())
@@ -117,26 +119,26 @@ func main() {
 		return
 	}
 
-	tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, sn)
-	if err != nil {
-		logger.Fatal(err)
-	}
+	//tp, err := common.NewTraceProvider(context.Background(), *endpoint, *token, sn)
+	//if err != nil {
+	//	logger.Fatal(err)
+	//}
 	service := realmicro.NewService(
 		realmicro.Name(sn),
 		realmicro.Registry(etcd.NewRegistry(registry.Addrs([]string{etcdAddress}...))),
 		realmicro.Health(http.NewHealth()),
-		realmicro.WrapHandler(
-			validator.NewHandlerWrapper(),
-			opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(tp)),
-		),
-		realmicro.WrapClient(opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(tp))),
+		//realmicro.WrapHandler(
+		//	validator.NewHandlerWrapper(),
+		//	opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(tp)),
+		//),
+		//realmicro.WrapClient(opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(tp))),
 	)
 	service.Init()
 
-	greeter.RegisterGreeterHandler(service.Server(), &Greeter{
-		ServiceName: sn,
-		Client:      service.Client(),
-	})
+	// Register handler — docs extracted automatically from comments
+	if err = service.Handle(new(Greeter)); err != nil {
+		log.Fatal(err)
+	}
 
 	if err = service.Run(); err != nil {
 		logger.Fatal(err)
