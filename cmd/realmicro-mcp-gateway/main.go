@@ -37,9 +37,9 @@ func main() {
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "address",
-				Usage:   "Address to listen on",
-				Value:   ":3000",
+				Name:  "address",
+				Usage: "Address to listen on",
+				//Value:   ":3000",
 				EnvVars: []string{"MCP_ADDRESS"},
 			},
 			&cli.StringFlag{

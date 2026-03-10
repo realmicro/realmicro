@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/realmicro/realmicro/auth"
+	"github.com/realmicro/realmicro/codec/bytes"
 	"github.com/realmicro/realmicro/metadata"
 )
 
@@ -256,13 +257,8 @@ func (t *StdioTransport) handleToolsCall(req *JSONRPCRequest) {
 
 	// Make RPC call
 	start := time.Now()
-	rpcReq := t.server.opts.Client.NewRequest(tool.Service, tool.Endpoint, &struct {
-		Data []byte
-	}{Data: inputBytes})
-
-	var rsp struct {
-		Data []byte
-	}
+	rpcReq := t.server.opts.Client.NewRequest(tool.Service, tool.Endpoint, &bytes.Frame{Data: inputBytes})
+	var rsp bytes.Frame
 
 	if err := t.server.opts.Client.Call(ctx, rpcReq, &rsp); err != nil {
 		accountID := ""
