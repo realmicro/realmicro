@@ -385,6 +385,12 @@ func WithMessageContentType(ct string) MessageOption {
 	}
 }
 
+func WithConnectionTimeout(d time.Duration) CallOption {
+	return func(o *CallOptions) {
+		o.ConnectionTimeout = d
+	}
+}
+
 // Request Options
 
 func WithContentType(ct string) RequestOption {
