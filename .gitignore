@@ -38,3 +38,4 @@ _cgo_export.*
 /examples/helloworld/helloworld
 /examples/client/client
 /cmd/cli/go.sum
+/examples/bootstrap/go.sum

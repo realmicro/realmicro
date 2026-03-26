@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package bootstrap;
+
+service BootstrapService {
+  // CreateAccount create a new account with username and password.
+  //
+  // @example {"account": {"username": "realmicro", "password": "realmicro111"}}
+  rpc CreateAccount (CreateAccountRequest) returns (CreateAccountResponse) {}
+
+  // Login login to the system, return with login token.
+  //
+  // @example {"username": "realmicro", "password": "realmicro111"}
+  rpc Login (LoginRequest) returns (LoginResponse) {}
+}
+
+// Status Code And Status
+
+enum StatusCode {
+  STATUS_SUCCESS = 0;
+  STATUS_INTERNAL_ERROR = 1;
+  STATUS_PARAM_ERROR = 2;
+}
+
+message Status {
+  StatusCode code = 1;
+  string msg = 2;
+}
+
+// Internal Enum
+
+enum AccountStatus {
+  ACCOUNT_STATUS_NONE = 0;
+  ACCOUNT_STATUS_NORMAL = 1;
+  ACCOUNT_STATUS_BLACKLIST = 2;
+}
+
+// Internal Message
+
+message Account {
+  int64 id = 1;
+  string username = 2;
+  string password = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+  AccountStatus status = 6;
+}
+
+// RPC Request And Response
+
+message CreateAccountRequest {
+  Account account = 1;
+}
+
+message CreateAccountResponse {
+  Status status = 1;
+  int64 id = 2;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  Status status = 1;
+  string token = 2;
+}

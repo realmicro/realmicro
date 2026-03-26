@@ -1,0 +1,15 @@
+Hosts:
+  Etcd:
+    Address:
+      - 127.0.0.1:2379
+    RegisterTTL: 50
+    RegisterInterval: 17
+  Sqlite:
+    DBPath: ./data/bootstrap.db
+    IfShowSql: true
+    IfSyncDB: true
+
+ServiceName: Bootstrap
+Project: Realmicro
+Env: prod
+Version: 0.0.1
