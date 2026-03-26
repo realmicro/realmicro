@@ -39,3 +39,5 @@ _cgo_export.*
 /examples/client/client
 /cmd/cli/go.sum
 /examples/bootstrap/go.sum
+/.gocache/
+/.gomodcache/
