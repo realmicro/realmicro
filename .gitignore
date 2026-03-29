@@ -41,3 +41,4 @@ _cgo_export.*
 /examples/bootstrap/go.sum
 /.gocache/
 /.gomodcache/
+/.claude/

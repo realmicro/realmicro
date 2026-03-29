@@ -26,6 +26,10 @@ type Service interface {
 	Client() client.Client
 	// Server is for handling requests and events
 	Server() server.Server
+	// Start the service (non-blocking).
+	Start() error
+	// Stop the service.
+	Stop() error
 	// Run the service
 	Run() error
 	// String The service implementation
@@ -54,6 +58,14 @@ type Event interface {
 type Publisher = Event
 
 type Option func(*Options)
+
+// New creates a new service with the given name and options.
+//
+//	service := realmicro.New("greeter")
+//	service := realmicro.New("greeter", realmicro.Address(":8080"))
+func New(name string, opts ...Option) Service {
+	return newService(append([]Option{Name(name)}, opts...)...)
+}
 
 // NewService creates and returns a new Service based on the packages within.
 func NewService(opts ...Option) Service {
