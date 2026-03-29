@@ -1,9 +1,16 @@
 # REALMICRO
 
-## Last Version
+### Last Version
+```aiignore
 v1.0.1
+```
 
-## TODO LIST
+### Install
+```shell
+go get -u github.com/realmicro/realmicro@v1.0.1
+```
+
+### TODO LIST
 - [X] realmicro API Gateway
 - [ ] realmicro Admin Dashboard
   - [ ] Service List And Description
