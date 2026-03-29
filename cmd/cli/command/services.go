@@ -19,15 +19,13 @@ func Services() *cli.Command {
 				return fmt.Errorf("failed to list services: %w", err)
 			}
 
-			sort.Slice(services, func(i, j int) bool {
-				return services[i].Name < services[j].Name
-			})
-
+			names := make([]string, 0, len(services))
 			for _, s := range services {
-				fmt.Println(s.Name)
+				names = append(names, s.Name)
 			}
+			sort.Strings(names)
 
-			return nil
+			return printJSON(names)
 		},
 	}
 }

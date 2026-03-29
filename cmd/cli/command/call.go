@@ -54,14 +54,7 @@ func Call() *cli.Command {
 				return nil
 			}
 
-			formatted, err := json.MarshalIndent(out, "", "  ")
-			if err != nil {
-				fmt.Println(string(rsp))
-				return nil
-			}
-
-			fmt.Println(string(formatted))
-			return nil
+			return printJSON(out)
 		},
 	}
 }
