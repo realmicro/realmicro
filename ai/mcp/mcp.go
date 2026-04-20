@@ -3,7 +3,7 @@
 //
 // Example usage:
 //
-//	service := micro.NewService(micro.Name("myservice"))
+//	service := realmicro.NewService(realmicro.Name("hello"))
 //	service.Init()
 //
 //	// Add MCP gateway
@@ -612,7 +612,7 @@ func Example() {
 	// This function is never called - it's just documentation
 	_ = func() {
 		// In your service code:
-		// service := micro.NewService(micro.Name("myservice"))
+		// service := realmicro.NewService(realmicro.Name("hello"))
 		// service.Init()
 
 		// Start MCP gateway

@@ -70,8 +70,8 @@ func (n *noopRules) Revoke(rule *Rule) error {
 	return nil
 }
 
-// Rules used to verify requests
-// Verify an account has access to a resource.
+// Verify Rules used to verify requests
+// verify an account has access to a resource.
 func (n *noopRules) Verify(acc *Account, res *Resource, opts ...VerifyOption) error {
 	return nil
 }

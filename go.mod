@@ -10,6 +10,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/evanphx/json-patch v4.11.0+incompatible
 	github.com/fsnotify/fsnotify v1.7.0
